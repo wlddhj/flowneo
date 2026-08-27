@@ -53,7 +53,7 @@ function lintAll(skillsDir) {
 // src/cli/main.ts
 var command = process.argv[2];
 if (command === "lint") {
-  const errors = lintAll(fileURLToPath(new URL("../../skills/", import.meta.url)));
+  const errors = lintAll(fileURLToPath(new URL("../skills/", import.meta.url)));
   if (errors.length > 0) {
     console.error("flowneo lint \u5931\u8D25\uFF1A\n" + errors.map((e) => ` - ${e}`).join("\n"));
     process.exit(1);
