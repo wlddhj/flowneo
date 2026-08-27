@@ -3,13 +3,16 @@
   "version": "0.2.0",
   "description": "FlowNeo — 轻量跨平台 AI 编码工程工作流插件（Claude Code / Codex）",
   "type": "module",
-  "bin": { "flowneo": "./dist/cli.js" },
+  "bin": {
+    "flowneo": "./dist/cli.js"
+  },
   "scripts": {
     "build": "node esbuild.mjs",
     "test": "vitest run --passWithNoTests",
     "typecheck": "tsc --noEmit",
     "lint": "npm run build && node dist/cli.js lint",
-    "verify": "node esbuild.mjs && git diff HEAD --exit-code dist/"
+    "verify": "node esbuild.mjs && git diff HEAD --exit-code dist/",
+    "bump-version": "node scripts/bump-version.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
@@ -17,5 +20,7 @@
     "typescript": "^5.6.0",
     "vitest": "^2.1.0"
   },
-  "engines": { "node": ">=18" }
+  "engines": {
+    "node": ">=18"
+  }
 }

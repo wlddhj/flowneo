@@ -2,9 +2,16 @@
   "name": "flowneo",
   "description": "FlowNeo — 轻量工程工作流：精简 Router 持续注入 + 五阶段闭环 + 四阶结构化设计",
   "version": "0.2.0",
-  "author": { "name": "huangjian" },
+  "author": {
+    "name": "huangjian"
+  },
   "homepage": "https://github.com/huangjian/flowneo",
   "repository": "https://github.com/huangjian/flowneo",
   "license": "MIT",
-  "keywords": ["workflow", "skills", "router", "engineering"]
+  "keywords": [
+    "workflow",
+    "skills",
+    "router",
+    "engineering"
+  ]
 }
