@@ -98,7 +98,7 @@ describe('buildTurnReminder', () => {
 describe('safe 包装', () => {
   it('IO 异常返回空串不抛出', () => {
     mkdirSync(join(dir, '.flow-neo/tasks/x/status.md'), { recursive: true })
-    expect(safeSessionContext(dir, undefined, null)).toBeTypeOf('string')
-    expect(safeTurnReminder(dir, null)).toBeTypeOf('string')
+    expect(safeSessionContext(dir, undefined, null)).toBe('')
+    expect(safeTurnReminder(dir, null)).toBe('')
   })
 })

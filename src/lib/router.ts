@@ -21,7 +21,7 @@ export function readStatus(cwd: string, slug: string): TaskStatus | null {
   if (!existsSync(file)) return null
   const raw = readFileSync(file, 'utf8')
   const pick = (key: string) => raw.match(new RegExp(`^${key}:\\s*(.*)$`, 'm'))?.[1]?.trim() ?? ''
-  return { task: pick('task'), slug: pick('slug'), stage: pick('stage'), raw }
+  return { task: pick('task'), slug: slug, stage: pick('stage'), raw }
 }
 
 function formatTaskList(cwd: string): string {
