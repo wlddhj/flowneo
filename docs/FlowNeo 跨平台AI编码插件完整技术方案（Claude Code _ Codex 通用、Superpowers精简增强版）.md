@@ -1,4 +1,4 @@
-# FlowNeo 跨平台AI编码插件技术方案 v2.0（Claude Code / Codex 通用、Superpowers 精简增强版）
+# FlowNeo 跨平台AI编码插件技术方案 v2.2（Claude Code / Codex 通用、Superpowers 精简增强版）
 
 > **修订记录**
 > - v2.2（2026-08-27）：多任务并行支持——`.flow-neo/tasks/<slug>/` 取代 `current/` 单活跃区；新增会话级绑定 `sessions/<session-id>.md`（CC 机制级多会话隔离）；轻任务零文件化；status.md 去 mode 增 slug；Router/技能话术全链路切换。
