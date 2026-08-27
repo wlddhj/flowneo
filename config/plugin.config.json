@@ -1,0 +1,7 @@
+{
+  "reminders": { "perTurn": true },
+  "archive": { "strategy": "prompt" },
+  "lint": { "routerLimit": 1500 },
+  "schema": { "strictness": "loose" },
+  "stages": { "skipDesign": false, "skipReview": false }
+}
