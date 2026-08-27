@@ -25,7 +25,14 @@ function buildTurnReminder(cwd) {
   }
   return `\u3010FlowNeo\u3011\u5B8C\u6574\u6A21\u5F0F\uFF0C\u5F53\u524D\u9636\u6BB5 ${s.stage || "?"}\uFF08${s.task || "\u672A\u547D\u540D"}\uFF09\uFF1A\u9075\u5B88\u8BE5\u9636\u6BB5\u7EAA\u5F8B\uFF0C\u4EA7\u51FA/\u66F4\u65B0\u5BF9\u5E94\u5DE5\u4EF6\u540E\u5148\u66F4\u65B0 status.md \u518D\u8FDB\u5165\u4E0B\u4E00\u9636\u6BB5\u3002`;
 }
+function safeTurnReminder(cwd) {
+  try {
+    return buildTurnReminder(cwd);
+  } catch {
+    return "";
+  }
+}
 
 // src/hooks/user-prompt-submit.ts
-var context = buildTurnReminder(process.cwd());
+var context = safeTurnReminder(process.cwd());
 process.stdout.write(hookContext("UserPromptSubmit", context));

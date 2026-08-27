@@ -11,7 +11,7 @@ description: FlowNeo 阶段五·交付归档。当 status.md 的 stage 为 5 时
 
 1. 按模板写入 .flow-neo/current/05-archive-summary.md
 2. 若项目使用 git：按项目提交规范提交代码变更（.flow-neo/ 是否入库遵循项目 .gitignore）
-3. 归档迁移：mkdir -p .flow-neo/history && mv .flow-neo/current .flow-neo/history/<YYYYMMDD>-<任务英文简写或版本>/
+3. 归档迁移：mkdir -p .flow-neo/history && mv .flow-neo/current .flow-neo/history/<YYYYMMDD>-<任务英文简写或版本>/（若目标目录已存在，在标识末尾追加 -2、-3 递增后缀后重试，绝不覆盖已有快照）
 4. 重建空 current/ 目录（mkdir .flow-neo/current）
 5. 向用户汇报交付总结与归档路径
 

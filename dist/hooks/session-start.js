@@ -33,7 +33,14 @@ ${router}
 ${status.raw}
 </FLOWNEO_STATUS>`;
 }
+function safeSessionContext(cwd, pluginRoot) {
+  try {
+    return buildSessionContext(cwd, pluginRoot);
+  } catch {
+    return "";
+  }
+}
 
 // src/hooks/session-start.ts
-var context = buildSessionContext(process.cwd(), process.env.CLAUDE_PLUGIN_ROOT);
+var context = safeSessionContext(process.cwd(), process.env.CLAUDE_PLUGIN_ROOT);
 process.stdout.write(hookContext("SessionStart", context));

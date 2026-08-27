@@ -2,7 +2,7 @@ import { describe, expect, it, beforeEach } from 'vitest'
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { routerPath, readStatus, buildSessionContext, buildTurnReminder } from '../src/lib/router.ts'
+import { routerPath, readStatus, buildSessionContext, buildTurnReminder, safeSessionContext, safeTurnReminder } from '../src/lib/router.ts'
 
 let dir: string
 beforeEach(() => {
@@ -54,6 +54,19 @@ describe('buildSessionContext', () => {
     const ctx = buildSessionContext(dir)
     expect(ctx).toContain('<FLOWNEO_STATUS>')
     expect(ctx).toContain('mode: full')
+  })
+})
+
+describe('safe* IO 兜底', () => {
+  it('status.md 为目录（EISDIR）时 safeSessionContext 不抛且返回空串', () => {
+    mkdirSync(join(dir, '.flow-neo/current/status.md'), { recursive: true })
+    expect(() => buildSessionContext(dir)).toThrow()
+    expect(safeSessionContext(dir)).toBe('')
+  })
+  it('status.md 为目录（EISDIR）时 safeTurnReminder 不抛且返回空串', () => {
+    mkdirSync(join(dir, '.flow-neo/current/status.md'), { recursive: true })
+    expect(() => buildTurnReminder(dir)).toThrow()
+    expect(safeTurnReminder(dir)).toBe('')
   })
 })
 

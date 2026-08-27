@@ -8,7 +8,8 @@
     "build": "node esbuild.mjs",
     "test": "vitest run --passWithNoTests",
     "typecheck": "tsc --noEmit",
-    "lint": "npm run build && node dist/cli.js lint"
+    "lint": "npm run build && node dist/cli.js lint",
+    "verify": "node esbuild.mjs && git diff --exit-code dist/"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

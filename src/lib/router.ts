@@ -42,3 +42,20 @@ export function buildTurnReminder(cwd: string): string {
   }
   return `【FlowNeo】完整模式，当前阶段 ${s.stage || '?'}（${s.task || '未命名'}）：遵守该阶段纪律，产出/更新对应工件后先更新 status.md 再进入下一阶段。`
 }
+
+/** hook 入口专用：任何 IO 异常吞掉并返回空串，保证 hook 输出合法 JSON、exit 0 */
+export function safeSessionContext(cwd: string, pluginRoot?: string): string {
+  try {
+    return buildSessionContext(cwd, pluginRoot)
+  } catch {
+    return ''
+  }
+}
+
+export function safeTurnReminder(cwd: string): string {
+  try {
+    return buildTurnReminder(cwd)
+  } catch {
+    return ''
+  }
+}
