@@ -16,12 +16,19 @@ export function routerPath(cwd: string, pluginRoot?: string): string | null {
   return candidates.find((p) => existsSync(p)) ?? null
 }
 
+const RE_TASK = /^task:\s*(.*)$/m
+const RE_STAGE = /^stage:\s*(.*)$/m
+
 export function readStatus(cwd: string, slug: string): TaskStatus | null {
   const file = join(cwd, '.flow-neo/tasks', slug, 'status.md')
   if (!existsSync(file)) return null
   const raw = readFileSync(file, 'utf8')
-  const pick = (key: string) => raw.match(new RegExp(`^${key}:\\s*(.*)$`, 'm'))?.[1]?.trim() ?? ''
-  return { task: pick('task'), slug: slug, stage: pick('stage'), raw }
+  return {
+    task: raw.match(RE_TASK)?.[1]?.trim() ?? '',
+    slug,
+    stage: raw.match(RE_STAGE)?.[1]?.trim() ?? '',
+    raw,
+  }
 }
 
 function formatTaskList(cwd: string): string {
@@ -42,12 +49,14 @@ export function buildSessionContext(cwd: string, pluginRoot: string | undefined,
   const rp = routerPath(cwd, pluginRoot)
   const router = rp ? readFileSync(rp, 'utf8') : ''
   const head = `<FLOWNEO_ROUTER>\n${router}\n</FLOWNEO_ROUTER>`
+  const sid = sessionId ?? 'unknown'
+  const sessionBlock = (bound: string) => `<FLOWNEO_SESSION>\nsession_id: ${sid}\nbound: ${bound}\n</FLOWNEO_SESSION>`
   const slug = sessionId ? readBinding(cwd, sessionId) : null
   if (slug) {
     const status = readStatus(cwd, slug)
-    if (status) return `${head}\n\n<FLOWNEO_STATUS>\n${status.raw}\n</FLOWNEO_STATUS>`
+    if (status) return `${head}\n\n${sessionBlock(slug)}\n\n<FLOWNEO_STATUS>\n${status.raw}\n</FLOWNEO_STATUS>`
   }
-  return `${head}\n\n<FLOWNEO_TASKS>\n${formatTaskList(cwd)}\n</FLOWNEO_TASKS>`
+  return `${head}\n\n${sessionBlock('none')}\n\n<FLOWNEO_TASKS>\n${formatTaskList(cwd)}\n</FLOWNEO_TASKS>`
 }
 
 export function buildTurnReminder(cwd: string, sessionId: string | null): string {

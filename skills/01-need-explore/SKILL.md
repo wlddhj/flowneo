@@ -12,7 +12,7 @@ description: FlowNeo 阶段一·需求探索与任务创建。当判为重任务
 1. **创建任务**（已存在本会话绑定的任务则跳过本步，直接从步骤 2 开始）：
    - 与用户确认任务名；slug 优先用任务的英文短横线名（如 user-center），用户未提供则由任务名清洗生成（空格/斜杠→`-`；与 .flow-neo/tasks/ 既有目录冲突时追加 -2、-3）
    - 创建 `.flow-neo/tasks/<slug>/status.md`：`task: <任务名>`、`slug: <slug>`、`stage: 1`、`artifacts: []`、`updated: <当前时间>` 五字段
-   - 写本会话绑定 `.flow-neo/sessions/<本会话id>.md`：`task: <slug>`（无法获知会话 id 的环境跳过此步）
+   - 写本会话绑定：从注入的 `<FLOWNEO_SESSION>` 块读 `session_id`，写入 `.flow-neo/sessions/<session_id>.md` 内容 `task: <slug>`；session_id 为 `unknown` 时跳过此步（无绑定机制的环境仍可走任务流程，仅失去多会话隔离）
 2. 拆解用户原始需求，提炼核心开发目标
 3. 逐项明确：需求边界与不做事项、运行环境与兼容要求、验收标准
 4. 存在模糊点时一次性列出全部疑问向用户确认（禁止拆成多轮）；无法确认的给出假设并显式标注

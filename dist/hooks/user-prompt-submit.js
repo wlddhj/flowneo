@@ -53,12 +53,18 @@ function parseSessionId(input) {
 }
 
 // src/lib/router.ts
+var RE_TASK2 = /^task:\s*(.*)$/m;
+var RE_STAGE2 = /^stage:\s*(.*)$/m;
 function readStatus(cwd, slug) {
   const file = join2(cwd, ".flow-neo/tasks", slug, "status.md");
   if (!existsSync2(file)) return null;
   const raw = readFileSync2(file, "utf8");
-  const pick = (key) => raw.match(new RegExp(`^${key}:\\s*(.*)$`, "m"))?.[1]?.trim() ?? "";
-  return { task: pick("task"), slug, stage: pick("stage"), raw };
+  return {
+    task: raw.match(RE_TASK2)?.[1]?.trim() ?? "",
+    slug,
+    stage: raw.match(RE_STAGE2)?.[1]?.trim() ?? "",
+    raw
+  };
 }
 function formatTaskList(cwd) {
   const tasks = listTasks(cwd);

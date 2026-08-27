@@ -72,12 +72,18 @@ function routerPath(cwd2, pluginRoot) {
   const candidates = pluginRoot ? [join2(pluginRoot, "skills/_router/router.md"), join2(cwd2, ".claude/skills/_router/router.md")] : [join2(cwd2, ".claude/skills/_router/router.md")];
   return candidates.find((p) => existsSync2(p)) ?? null;
 }
+var RE_TASK2 = /^task:\s*(.*)$/m;
+var RE_STAGE2 = /^stage:\s*(.*)$/m;
 function readStatus(cwd2, slug) {
   const file = join2(cwd2, ".flow-neo/tasks", slug, "status.md");
   if (!existsSync2(file)) return null;
   const raw = readFileSync2(file, "utf8");
-  const pick = (key) => raw.match(new RegExp(`^${key}:\\s*(.*)$`, "m"))?.[1]?.trim() ?? "";
-  return { task: pick("task"), slug, stage: pick("stage"), raw };
+  return {
+    task: raw.match(RE_TASK2)?.[1]?.trim() ?? "",
+    slug,
+    stage: raw.match(RE_STAGE2)?.[1]?.trim() ?? "",
+    raw
+  };
 }
 function formatTaskList(cwd2) {
   const tasks = listTasks(cwd2);
@@ -90,16 +96,25 @@ function buildSessionContext(cwd2, pluginRoot, sessionId2) {
   const head = `<FLOWNEO_ROUTER>
 ${router}
 </FLOWNEO_ROUTER>`;
+  const sid = sessionId2 ?? "unknown";
+  const sessionBlock = (bound) => `<FLOWNEO_SESSION>
+session_id: ${sid}
+bound: ${bound}
+</FLOWNEO_SESSION>`;
   const slug = sessionId2 ? readBinding(cwd2, sessionId2) : null;
   if (slug) {
     const status = readStatus(cwd2, slug);
     if (status) return `${head}
+
+${sessionBlock(slug)}
 
 <FLOWNEO_STATUS>
 ${status.raw}
 </FLOWNEO_STATUS>`;
   }
   return `${head}
+
+${sessionBlock("none")}
 
 <FLOWNEO_TASKS>
 ${formatTaskList(cwd2)}
