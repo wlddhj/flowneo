@@ -7,6 +7,17 @@ description: FlowNeo 阶段二·结构化四阶方案设计。当本任务 statu
 
 目标：定标准、定业务、定底层、定落地路径。本文档是后续编码与审查的唯一依据，规格与设计合一、不重复。
 
+## 笼统 vs 具体（对照）
+
+❌ 笼统：模块拆分：前后端
+✅ 具体：模块拆分：auth-service（认证）+ user-api（用户 CRUD）+ audit-log（审计）
+
+❌ 笼统：业务流程：用户登录
+✅ 具体：业务流程：POST /login → 校验凭据 → 生成 JWT → 写 audit-log → 返回 token
+
+❌ 笼统：任务拆解：做登录功能
+✅ 具体：任务 1 写 auth-service.test.ts；任务 2 实现 auth-service；任务 3 接入 audit-log
+
 <HARD-GATE>
 本任务 02-design-plan.md 四段未齐全、且未经用户确认（或标注假设）前，禁止创建/修改任何业务代码文件。
 </HARD-GATE>
