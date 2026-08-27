@@ -15,17 +15,26 @@ export function makeSlug(name: string, existing: string[]): string {
   return `${base}-${n}`
 }
 
+function assertSessionId(s: string): void {
+  if (typeof s !== 'string' || /[\0\\/]/.test(s)) throw new Error('invalid sessionId')
+}
+
 export function readBinding(cwd: string, sessionId: string): string | null {
+  assertSessionId(sessionId)
   const file = join(cwd, '.flow-neo/sessions', `${sessionId}.md`)
   if (!existsSync(file)) return null
   return readFileSync(file, 'utf8').match(/^task:\s*(\S+)\s*$/m)?.[1] ?? null
 }
 
 export function writeBinding(cwd: string, sessionId: string, slug: string): void {
+  assertSessionId(sessionId)
   const dir = join(cwd, '.flow-neo/sessions')
   mkdirSync(dir, { recursive: true })
   writeFileSync(join(dir, `${sessionId}.md`), `task: ${slug}\n`)
 }
+
+const RE_TASK = /^task:\s*(.*)$/m
+const RE_STAGE = /^stage:\s*(.*)$/m
 
 export function listTasks(cwd: string): TaskSummary[] {
   const dir = join(cwd, '.flow-neo/tasks')
@@ -36,10 +45,13 @@ export function listTasks(cwd: string): TaskSummary[] {
     const file = join(dir, entry.name, 'status.md')
     if (!existsSync(file)) continue
     const raw = readFileSync(file, 'utf8')
-    const pick = (key: string) => raw.match(new RegExp(`^${key}:\\s*(.*)$`, 'm'))?.[1]?.trim() ?? ''
-    out.push({ slug: entry.name, task: pick('task'), stage: pick('stage') })
+    out.push({
+      slug: entry.name,
+      task: raw.match(RE_TASK)?.[1]?.trim() ?? '',
+      stage: raw.match(RE_STAGE)?.[1]?.trim() ?? '',
+    })
   }
-  return out.sort((a, b) => a.slug.localeCompare(b.slug))
+  return out.sort((a, b) => (a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0))
 }
 
 export function cleanSessions(cwd: string, maxAgeMs: number): number {

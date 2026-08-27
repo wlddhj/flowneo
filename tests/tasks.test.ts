@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach } from 'vitest'
+import { describe, expect, it, beforeEach, afterEach } from 'vitest'
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync, utimesSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -9,7 +9,9 @@ import {
 let dir: string
 beforeEach(() => {
   dir = mkdtempSync(join(tmpdir(), 'flowneo-tasks-'))
-  return () => rmSync(dir, { recursive: true, force: true })
+})
+afterEach(() => {
+  if (dir) rmSync(dir, { recursive: true, force: true })
 })
 
 describe('makeSlug', () => {
