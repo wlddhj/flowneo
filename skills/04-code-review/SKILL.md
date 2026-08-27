@@ -1,6 +1,6 @@
 ---
 name: flowneo-code-review
-description: FlowNeo 阶段四·代码自查审查。当 status.md 的 stage 为 4 时使用。对照 02-design-plan.md 审查全部变更（设计一致性/逻辑边界/规范/性能安全），修复问题并产出 .flow-neo/current/04-code-review.md。
+description: FlowNeo 阶段四·代码自查审查。当 status.md 的 stage 为 4 时使用。对照 本任务 02-design-plan.md 审查全部变更（设计一致性/逻辑边界/规范/性能安全），修复问题并产出 .flow-neo/tasks/<slug>/04-code-review.md。
 ---
 
 # 阶段四：代码自查审查
@@ -9,7 +9,7 @@ description: FlowNeo 阶段四·代码自查审查。当 status.md 的 stage 为
 
 ## 审查清单（逐项执行）
 
-1. 设计一致性：实现与 02-design-plan.md 逐条比对，偏差要么修复、要么回写设计
+1. 设计一致性：实现与 本任务 02-design-plan.md 逐条比对，偏差要么修复、要么回写设计
 2. 逻辑与边界：空值、越界、并发、资源释放、异常路径
 3. 代码规范：命名、重复代码、死代码、无用依赖
 4. 性能与安全：N+1 查询、超大内存占用、注入/XSS/敏感信息硬编码
