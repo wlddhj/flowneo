@@ -15,6 +15,7 @@ await build({
   entryPoints: {
     'hooks/session-start': 'src/hooks/session-start.ts',
     'hooks/user-prompt-submit': 'src/hooks/user-prompt-submit.ts',
+    'hooks/post-tool-use': 'src/hooks/post-tool-use.ts',
   },
   outdir: 'dist',
 })
