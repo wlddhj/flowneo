@@ -7,6 +7,10 @@ description: FlowNeo 阶段一·需求探索与任务创建。当判为重任务
 
 目标：创建任务、澄清模糊需求、锁定需求边界、排除无效诉求，杜绝开发中途改需求、漏需求。
 
+```
+NO REQUIREMENT LEFT AMBIGUOUS — CLARIFY OR MARK ASSUMPTION BEFORE PROCEEDING
+```
+
 ## 执行步骤
 
 1. **创建任务**（已存在本会话绑定的任务则跳过本步，直接从步骤 2 开始）：

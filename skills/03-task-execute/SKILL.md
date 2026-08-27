@@ -31,4 +31,7 @@ description: FlowNeo 阶段三·分任务编码执行。当本任务 status.md �
 
 ## 完成条件
 
-拆解表内任务全部 done；无未记录的文件变更；status.md 已更新至 stage: 4。
+- [ ] 02 任务拆解表中所有任务均 done
+- [ ] 无未记录的文件变更
+- [ ] status.md 已更新至 stage: 4
+- [ ] 用 Skill 工具调用 flowneo-code-review 进入阶段四

@@ -1,0 +1,15 @@
+{
+  "files": [
+    "package.json",
+    ".claude-plugin/plugin.json",
+    ".claude-plugin/marketplace.json"
+  ],
+  "audit": {
+    "exclude": [
+      "RELEASE-NOTES.md",
+      "node_modules",
+      ".git",
+      "scripts/bump-version.mjs"
+    ]
+  }
+}

@@ -7,6 +7,10 @@ description: FlowNeo 阶段四·代码自查审查。当本任务 status.md 的 
 
 目标：自查漏洞、规范代码、对齐设计、修复隐性 Bug。所有代码变更必须审查。
 
+```
+NO REVIEW CLOSED WITHOUT ROOT CAUSE NAMED
+```
+
 ## 审查清单（逐项执行）
 
 1. 设计一致性：实现与 本任务 02-design-plan.md 逐条比对，偏差要么修复、要么回写设计
@@ -14,6 +18,17 @@ description: FlowNeo 阶段四·代码自查审查。当本任务 status.md 的 
 3. 代码规范：命名、重复代码、死代码、无用依赖
 4. 性能与安全：N+1 查询、超大内存占用、注入/XSS/敏感信息硬编码
 5. 修复发现的问题并逐条记录
+
+## 具体批评 vs 泛化指责（对照）
+
+❌ 泛化：这段代码可读性差
+✅ 具体：router.ts:23 `pick` 闭包每次 new RegExp，可提为常量 RE_TASK
+
+❌ 泛化：错误处理不够
+✅ 具体：tasks.ts:19 readBinding 未校验 sessionId 含 `/`，可能路径注入
+
+❌ 泛化：性能有问题
+✅ 具体：listTasks 对每个任务 new RegExp 2 次，可常量化
 
 ## 04-code-review.md 模板
 

@@ -7,6 +7,10 @@ description: FlowNeo 阶段五·交付归档。当本任务 status.md 的 stage 
 
 目标：汇总交付成果、沉淀复盘、形成版本快照，绝不覆盖历史，不影响其他进行中任务。
 
+```
+NO ARCHIVE WITHOUT SNAPSHOT CLEAN
+```
+
 ## 执行步骤
 
 1. 按模板写入本任务目录的 05-archive-summary.md
@@ -28,4 +32,7 @@ description: FlowNeo 阶段五·交付归档。当本任务 status.md 的 stage 
 
 ## 完成条件
 
-history/ 下快照完整（01~05 + status.md）；引用绑定已清理；其他 tasks/ 任务未受影响；用户已收到交付汇报。
+- [ ] history/<YYYYMMDD>-<slug>/ 下快照完整（01~05 + status.md）
+- [ ] 引用该任务的 sessions/*.md 绑定文件已清理
+- [ ] 其他 tasks/ 任务未受影响
+- [ ] 用户已收到交付汇报
