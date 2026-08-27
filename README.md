@@ -1,0 +1,59 @@
+# FlowNeo
+
+轻量跨平台 AI 编码工程工作流插件，原生兼容 **Claude Code** 与 **OpenAI Codex**。Superpowers 的精简平替：常驻 Router 持续注入保流程纪律，懒加载与轻重分流压低 Token 消耗，四阶结构化设计让方案落地更专业。
+
+## 安装
+
+Claude Code（marketplace 一键）：
+
+```bash
+claude plugin marketplace add <owner>/flowneo
+claude plugin install flowneo@flowneo-marketplace
+```
+
+Codex：
+
+```bash
+codex plugin marketplace add <owner>/flowneo
+codex plugin install flowneo@flowneo-marketplace
+```
+
+项目级兜底（未来版本）：`npx flowneo init`
+
+## 快速开始
+
+安装后任意会话中：
+
+- **轻任务**（改 Bug / 改配置 / 补注释 / 局部微调）：直接说需求，FlowNeo 走轻量流——零工件文件，仅 status.md 一行记录
+- **重任务**（新功能 / 模块重构 / 数据表或接口设计）：说「新任务 <名称>」，FlowNeo 引导走五阶段
+
+## 五阶段工作流（重任务）
+
+1. 需求探索 → 2. 结构化四阶设计（需求规格 / 功能设计 / 架构数据 / 任务拆解）→ 3. 分任务编码 → 4. 代码自查 → 5. 交付归档
+
+每任务独立 `.flow-neo/tasks/<slug>/` 目录，会话级绑定 `.flow-neo/sessions/<session-id>.md` 支持多任务并行。
+
+## 与 Superpowers 的差异
+
+| 维度 | Superpowers | FlowNeo |
+|---|---|---|
+| 持续注入 | 重注入，常驻高 | 精简 Router ≤1.5K + 每轮轻提醒 |
+| 任务分流 | 一刀切全流程 | 轻重双流，轻任务零文档 |
+| 设计 | 规格与设计分离 | 四阶递进单文档 |
+| 多任务 | 单活跃任务 | 多任务并行 + 会话级绑定 |
+| 平台 | 多平台兼容冗余 | CC + Codex 双端，无冗余 |
+
+## 配置
+
+`.flow-neo/config/plugin.config.json`（阶段三实现）：流程开关、提醒级别、归档策略。
+
+## 文档
+
+- [技术方案 v2.2](./docs/FlowNeo%20%E8%B7%A8%E5%B9%B3%E5%8F%B0AI%E7%BC%96%E7%A0%81%E6%8F%92%E4%BB%B6%E5%AE%8C%E6%95%B4%E6%8A%80%E6%9C%AF%E6%96%B9%E6%A1%88%EF%BC%88Claude%20Code%20_%20Codex%20%E9%80%9A%E7%94%A8%E3%80%81Superpowers%E7%B2%BE%E7%AE%80%E5%A2%9E%E5%BC%BA%E7%89%88%EF%BC%89.md)
+- [测试方法](./docs/testing.md)
+- [移植到新平台 checklist](./docs/porting-to-a-new-harness.md)
+- [发布说明](./RELEASE-NOTES.md)
+
+## 许可证
+
+MIT，见 [LICENSE](./LICENSE)。
