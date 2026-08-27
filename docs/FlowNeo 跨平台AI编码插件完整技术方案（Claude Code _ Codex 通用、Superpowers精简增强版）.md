@@ -1,6 +1,8 @@
-# FlowNeo 跨平台AI编码插件技术方案 v2.0（Claude Code / Codex 通用、Superpowers 精简增强版）
+# FlowNeo 跨平台AI编码插件技术方案 v2.2（Claude Code / Codex 通用、Superpowers 精简增强版）
 
 > **修订记录**
+> - v2.2（2026-08-27）：多任务并行支持——`.flow-neo/tasks/<slug>/` 取代 `current/` 单活跃区；新增会话级绑定 `sessions/<session-id>.md`（CC 机制级多会话隔离）；轻任务零文件化；status.md 去 mode 增 slug；Router/技能话术全链路切换。
+> - v2.1（2026-08-27）：①适配层与工具链确定采用 **TypeScript**（esbuild 零依赖单文件产物，运行时仅依赖 Node ≥18）；②修正 Codex 端为**官方插件体系**（`.codex-plugin/plugin.json` + `codex plugin marketplace`，v2.0「无插件市场」表述过时），但 Codex 无 hooks 能力的结论不变；③新增双端**一键安装命令**与 `npx flowneo` 兜底入口；④仓库结构按「Markdown 技能内核 + TypeScript 适配层」重组。
 > - v2.0（2026-08-27）：依据可行性评估全面修订。①修正双平台目录与机制为 2026 官方标准（SKILL.md 目录式结构、AGENTS.md 常驻、真实 hooks 体系）；②新增「常驻调度核心 Router + 持续注入」机制，对抗长会话流程漂移；③自动化承诺降级为可实现话术（机制级 / 引导级分级标注）；④Token 效果由百分比宣称改为可测量验收标准；⑤迭代路径调整为「Claude Code 单端先行 → Codex 平移」；⑥全文去重收敛。
 > - v1.0（2026-08-27）：初稿。
 
@@ -10,9 +12,9 @@
 
 **跨平台标准 Agent 技能插件**，原生兼容 **Claude Code** 与 **OpenAI Codex** 双平台。
 
-- **Claude Code 端**：项目级 Skills（`.claude/skills/<name>/SKILL.md`）+ 会话 Hooks（SessionStart / UserPromptSubmit）+ 可选 `.claude-plugin` 插件包分发
-- **Codex 端**：项目级 Skills（`.codex/skills/<name>/SKILL.md`）+ `AGENTS.md` 常驻指令段
-- **核心形态**：**单一技能内核源、双端标准目录分发**。双平台 SKILL.md 格式已趋同（均遵循 agentskills.io 风格标准），一套内容双端安装、双端生效。
+- **Claude Code 端**：Skills + 会话 Hooks（SessionStart / UserPromptSubmit，经插件 `hooks/hooks.json` 自动注册）+ `.claude-plugin` 官方插件体系分发
+- **Codex 端**：Skills + `.codex-plugin/plugin.json` 官方插件清单（声明技能目录，`hooks` 为空——Codex 无会话钩子能力）+ `AGENTS.md` 标记段承载 Router 常驻
+- **核心形态**：**单一技能内核源（纯 Markdown）+ TypeScript 零依赖适配层，经双端官方插件体系分发**。双平台 SKILL.md 格式已趋同（均遵循 agentskills.io 风格标准），一套内容双端安装、双端生效。
 
 不属于独立 CLI、不属于 VSCode 插件、不属于自研 Agent 框架。
 
@@ -43,13 +45,13 @@ FlowNeo 定位：**轻量、双平台原生安装、精简持续注入的 Superp
 | 技能目录 | `.claude/skills/<name>/SKILL.md` | `.codex/skills/<name>/SKILL.md` |
 | 持久指令通道 | CLAUDE.md / SessionStart hook 注入 | AGENTS.md（原生全程常驻，等价持续在场） |
 | 每轮动态注入 | UserPromptSubmit hook | 无对应机制，由 AGENTS.md 常驻等效承担 |
-| 生命周期钩子 | SessionStart / UserPromptSubmit / PostToolUse / Stop | 无 hooks 体系 |
-| 插件分发 | `.claude-plugin/plugin.json` + marketplace | 无插件市场，文件级安装 |
+| 生命周期钩子 | SessionStart / UserPromptSubmit / PostToolUse / Stop | 无 hooks 能力（插件清单 `hooks` 为空） |
+| 插件分发 | `.claude-plugin/plugin.json` + `claude plugin marketplace` | `.codex-plugin/plugin.json` + `codex plugin marketplace` |
 | 技能加载方式 | 懒加载（常驻仅注入 name + description） | 懒加载（同一标准） |
 
 ### 2. 统一兼容方案
 
-- **单一技能源**：仓库 `skills/` 目录为唯一内核维护点，安装脚本分发至双端标准目录
+- **单一技能源**：仓库 `skills/` 目录为唯一内核维护点，经双端官方插件清单声明分发（CC `.claude-plugin/plugin.json` / Codex `.codex-plugin/plugin.json` 均指向 `./skills/`）；项目级安装由 `npx flowneo init` 复制到双端标准目录
 - **双轨注入**：Claude Code 走 hooks 动态注入（可携带实时状态）；Codex 走 AGENTS.md 标记段静态常驻
 - **能力分级声明（诚实口径）**：
   - **机制级**（确定性执行）：仅 Claude Code 端的 hooks 能力——会话启动注入、每轮阶段提醒、后续的工件校验
@@ -70,20 +72,22 @@ FlowNeo 定位：**轻量、双平台原生安装、精简持续注入的 Superp
 一段固定精简调度指令，**硬性体积上限约 1.5K tokens**，内容包含：
 
 1. **五阶段状态机 + 轻重双分流判定规则**（每阶段一句话职责）
-2. **每阶段唯一工件路径**（`.flow-neo/current/01~05` 固定文件名）
+2. **每阶段唯一工件路径**（`.flow-neo/tasks/<slug>/01~05` 固定文件名）
 3. **阶段流转纪律**：未产出对应工件不得进入下一阶段；模式与阶段变化必须写入 status.md
-4. **启动动作**：读取 `.flow-neo/current/status.md` 恢复任务上下文（断点续传的统一基座）
+4. **启动动作**：读取 `.flow-neo/tasks/<slug>/status.md` 恢复任务上下文（断点续传的统一基座）
 5. **上下文截断纪律**：超长文件/日志/Diff 只保留结论与关键片段，工具输出不整段复读
 
 ### 3. 状态文件 status.md（持续注入与断点续传的统一基座）
 
-`.flow-neo/current/status.md`，轻量状态文件（20 行以内）：
+每个任务独立一份，配合 `.flow-neo/sessions/<session-id>.md` 会话绑定实现多任务并行。
+
+`.flow-neo/tasks/<slug>/status.md`，轻量状态文件（20 行以内）：
 
 ```markdown
 # FlowNeo 任务状态
-mode: full | light          # 当前流程模式
-stage: 2-design-plan        # 当前阶段（01~05 / -）
 task: 用户中心重构           # 任务名
+slug: user-center-refactor   # 任务 slug（目录名即唯一标识）
+stage: 2-design-plan        # 当前阶段（01~05 / -）
 artifacts: [01-need-explore.md, 02-design-plan.md(进行中)]
 updated: 2026-08-27 11:30
 ```
@@ -106,6 +110,8 @@ updated: 2026-08-27 11:30
 - Router 全文写入项目 `AGENTS.md` 的 FlowNeo 标记段（`<!-- FLOWNEO:BEGIN -->` … `<!-- FLOWNEO:END -->`）
 - AGENTS.md 每会话全程在场，**等价于持续注入**；无每轮动态提醒，以 Router 内置的「每轮先读 status.md 再行动」纪律补偿
 - **标记段设计**：安装/升级/卸载脚本仅对标记段内的内容做安全增删替换，绝不触碰用户自有 AGENTS.md 内容；无冲突、可回滚
+
+注入实现说明：两个 hook 均为 TypeScript 编写、esbuild 打包的零依赖单文件（`node dist/hooks/*.js`），macOS / Linux / Windows 行为一致，无需平台垫片脚本。
 
 ### 5. Token 账本（诚实口径，可测量）
 
@@ -168,62 +174,92 @@ Router 内置分流判定规则，由模型按需求语义判定（引导级）�
 
 ## 五、整体架构（双平台通用）
 
-### 1. 插件仓库结构（单一内核 + 双端适配）
+### 1. 插件仓库结构（Markdown 内核 + TypeScript 适配层）
 
 ```text
 flowneo/                              # 插件仓库
-├── skills/                           # ★ 技能内核源（唯一维护点，双端共用）
+├── skills/                           # ★ 技能内核源（唯一维护点，双端共用，纯 Markdown）
 │   ├── _router/router.md             # 常驻调度核心源（CC→hook 注入；Codex→AGENTS.md 标记段）
 │   ├── 01-need-explore/SKILL.md
 │   ├── 02-design-plan/SKILL.md       # 四阶结构化设计
 │   ├── 03-task-execute/SKILL.md
 │   ├── 04-code-review/SKILL.md
 │   └── 05-git-archive/SKILL.md
-├── adapters/
-│   ├── claude/
-│   │   ├── hooks/session-start.sh    # 输出 Router + status.md 状态（stdout 注入上下文）
-│   │   ├── hooks/user-prompt-submit.sh  # 每轮极简阶段提醒
-│   │   └── hooks.snippet.json        # 项目级安装时合并入 .claude/settings.json
-│   └── codex/
-│       └── AGENTS-flowneo.md         # AGENTS.md 标记段源（由 router.md 生成/同步）
+├── src/                              # TypeScript 源码（适配层与工具链）
+│   ├── hooks/
+│   │   ├── session-start.ts          # Router + status.md 组装注入
+│   │   └── user-prompt-submit.ts     # 每轮极简阶段提醒
+│   └── cli/
+│       ├── init.ts                   # 项目级安装（复制 skills、合并 hooks、AGENTS.md 标记段）
+│       ├── remove.ts                 # 安全卸载
+│       ├── lint.ts                   # Router 体积 lint（≤1.5K tokens 硬校验）
+│       └── validate.ts               # 工件 Schema 校验（正式版，zod）
+├── dist/                             # esbuild 零依赖单文件产物（提交仓库，随插件分发）
+├── hooks/
+│   └── hooks.json                    # CC 插件 hooks 注册（command 调 node dist/hooks/*.js）
+├── .claude-plugin/
+│   ├── plugin.json                   # CC 插件清单
+│   └── marketplace.json              # CC 市场清单
+├── .codex-plugin/
+│   └── plugin.json                   # Codex 插件清单（"skills": "./skills/"，"hooks": {}）
 ├── config/plugin.config.json         # 默认配置（安装时复制到 .flow-neo/config/）
-├── scripts/
-│   ├── install.sh                    # 双端安装/升级（幂等：复制 skills、合并标记段、注册 hooks）
-│   ├── uninstall.sh                  # 安全卸载（仅删标记段与本插件文件）
-│   └── lint-router.sh                # Router 体积 lint（≤1.5K tokens 硬校验）
+├── AGENTS-flowneo.md                 # AGENTS.md 标记段源（npx init 合并用）
+├── package.json                      # npm 包（bin: flowneo → dist/cli）
 └── docs/
 ```
 
-### 2. 安装后项目内生效结构
+### 2. 一键安装与分发（双端官方命令 + npx 兜底）
 
-```text
-项目根/
-├── .claude/
-│   ├── skills/                       # ← 由 skills/ 复制（5 个阶段技能）
-│   └── settings.json                 # ← hooks 注册（SessionStart + UserPromptSubmit）
-├── .codex/
-│   └── skills/                       # ← 由 skills/ 复制
-├── AGENTS.md                         # ← 追加/更新 FLOWNEO 标记段（Router）
-└── .flow-neo/                        # 运行时工件目录（双端一致）
-    ├── current/                      # 当前任务唯一活跃区
-    │   ├── status.md                 # 状态文件（注入与断点的基座）
-    │   ├── 01-need-explore.md
-    │   ├── 02-design-plan.md
-    │   ├── 03-task-record.md
-    │   ├── 04-code-review.md
-    │   └── 05-archive-summary.md
-    ├── history/                      # 历史迭代归档（日期-版本目录快照，零覆盖）
-    └── config/plugin.config.json     # 全局持久化配置
+**用户级安装（推荐，双端官方插件体系，各两条命令）**
+
+```bash
+# Claude Code（hooks 经插件内 hooks/hooks.json 自动注册，不改动用户 settings）
+claude plugin marketplace add <owner>/flowneo
+claude plugin install flowneo@flowneo
+
+# Codex（.codex-plugin 清单声明技能目录）
+codex plugin marketplace add <owner>/flowneo
+codex plugin install flowneo@flowneo
 ```
 
-可选分发形态：打包为 `.claude-plugin/plugin.json` 插件上架 Claude Code marketplace（hooks 与 skills 由插件系统自动装配）；Codex 端维持文件级安装。
+（两端亦支持会话内 `/plugin` 交互安装；均支持从 GitHub 仓库、git URL、本地目录安装，便于内网/离线场景）
 
-### 3. 四层核心架构
+**项目级 / 兜底安装（npx，免 marketplace）**
 
-1. **平台适配层**：Claude Code（hooks 脚本 + settings 注册 + skills 复制）/ Codex（skills 复制 + AGENTS.md 标记段），由 install.sh 统一装配，上层无感知平台差异
+```bash
+npx flowneo init                    # 交互式：选择安装端（--claude / --codex）与级别（--project / --user）
+npx flowneo init --claude --project # 指定：仅 CC、项目级
+npx flowneo remove                  # 安全卸载（AGENTS.md 标记段清理、hooks 注销、技能文件删除）
+```
+
+**两种安装模式产物对比**
+
+| 模式 | Claude Code | Codex |
+|---|---|---|
+| 用户级（marketplace） | 插件系统管理 skills 与 hooks，全局生效，随 marketplace 更新 | 插件系统管理 skills，全局生效 |
+| 项目级（npx init） | skills 复制至 `.claude/skills/`，hooks 合并入 `.claude/settings.json` | skills 复制至 `.codex/skills/` |
+
+无论哪种模式，Codex 端的 Router 都需写入项目 `AGENTS.md` 标记段（Codex 无 hooks，AGENTS.md 是唯一常驻通道），由 `npx flowneo init` 自动完成或按插件说明引导。
+
+### 3. 运行时工件目录（双端一致）
+
+```text
+项目根/.flow-neo/
+├── tasks/                          # 进行中的重任务（每任务独立）
+│   └── <slug>/
+│       ├── status.md               # 状态文件（注入与断点的基座）
+│       └── 01~05 阶段工件（懒生成）
+├── sessions/                       # 会话→任务绑定（CC 机制级）
+│   └── <session-id>.md
+└── history/                        # 历史迭代归档（<YYYYMMDD>-<slug>/，零覆盖）
+```
+
+### 4. 四层核心架构
+
+1. **平台适配层**：Claude Code（hooks 注册 + skills）/ Codex（skills + AGENTS.md 标记段），TypeScript 实现，经插件清单或 `npx flowneo` CLI 统一装配，上层无感知平台差异
 2. **常驻调度层**：Router + status.md，持续注入的执行体，承担分流判定、阶段纪律、断点恢复（v1「会话调度核心层」的可落地形态）
 3. **轻量技能内核层**：5 个阶段技能，懒加载为双平台原生能力，FlowNeo 负责控制元数据与注入体积
-4. **Token 治理层**：常驻硬预算 + 技能内截断纪律 + lint 把关 + 可测量账本；机制级辅助（hooks 校验）仅 CC 端可选开启
+4. **Token 治理层**：常驻硬预算 + 技能内截断纪律 + `flowneo lint` 体积卡点 + 可测量账本；机制级辅助（hooks 校验）仅 CC 端可选开启
 
 ## 六、标准化阶段输出物规范（双端统一）
 
@@ -241,9 +277,9 @@ flowneo/                              # 插件仓库
 
 ### 2. 任务生命周期流转
 
-- **新任务启动**：判定轻重模式写入 status.md；复杂任务初始化 current 工件（懒生成）
-- **任务收尾**：复杂任务由 05 技能将 current 全套迁移至 `history/日期-版本/`，形成快照，**绝不覆盖历史**；轻量任务仅保留代码变更
-- **历史追溯**：history 目录按版本快照回溯；当前任务永远只读 current，无旧数据干扰
+- **新任务启动**：01 技能创建 `tasks/<slug>/` 并绑定会话；轻任务零文件
+- **任务收尾**：05 迁移至 `history/` 并清理绑定
+- **历史追溯**：history 目录按 `<YYYYMMDD>-<slug>/` 版本快照回溯；各任务独立互不干扰
 - **核心约束**：零覆盖、唯一数据源（design-plan.md 唯一承载设计）、文档懒生成、文件名固定禁止自定义、双端完全一致
 
 ## 七、多方能力对比
@@ -258,34 +294,39 @@ flowneo/                              # 插件仓库
 | 结构化分层设计 | ❌ 笼统 | ❌ 笼统 | ⭕ 规格设计分离重复 | ✅ 四阶递进、单文档无重复 |
 | 可定制性 | 低 | 低 | 中、规则臃肿 | ✅ 高、配置化 + 标记段安全卸载 |
 
-## 八、技术形态与开发规范
+## 八、技术形态与开发规范（v2.1：TypeScript 工具链）
 
-- **纯 Markdown 技能 + 平台原生机制**：无编译、无运行时框架；hooks 脚本为纯 POSIX shell（cat/grep 组装注入内容），保持零外部依赖；正式版 Schema 校验脚本（仅 CC 端可选）才引入 python/jq，属可选增强而非依赖
-- **官方规范对齐（2026 现状）**：Claude Code——目录式 SKILL.md、settings hooks（SessionStart/UserPromptSubmit/PostToolUse/Stop）、.claude-plugin 分发；Codex——`.codex/skills/` SKILL.md、AGENTS.md 全局+项目级合并加载，无 hooks 体系（本方案不虚构该平台不存在的机制）
+- **双层技术形态**：技能内核纯 Markdown（平台加载物，双端共用）；适配层与工具链 TypeScript（hooks 注入、安装/卸载、lint、校验）
+- **零依赖单文件纪律**：marketplace 安装不执行 npm install，所有 TS 产物经 esbuild 打包为自包含单文件并提交仓库（`dist/`），运行时仅依赖 Node ≥18；Claude Code 经 npm 安装的用户天然满足，其余环境由安装器检测并提示
+- **跨平台一致性**：hooks 直调 `node dist/hooks/*.js`，macOS / Linux / Windows 行为一致，无需 superpowers 式 bash/cmd polyglot 垫片
+- **官方规范对齐（2026 现状）**：Claude Code——目录式 SKILL.md、插件 `hooks/hooks.json` 自动注册、`.claude-plugin` + marketplace 分发；Codex——`.codex-plugin/plugin.json`（`"skills": "./skills/"`）+ `codex plugin marketplace`，无 hooks 能力（清单 `hooks` 为空，本方案不虚构该平台不存在的机制）；AGENTS.md 全局 + 项目级合并加载
 - **平台逻辑隔离**：内核（skills + Router + 工件规范）统一，适配层独立迭代，单端更新不影响另一端
-- **项目级即装即用**：install.sh 幂等安装，支持项目隔离与团队共享
+- **降级策略**：无 Node 环境下双端 skills 仍可被识别使用（引导级能力全保留），仅 CC hooks 注入与 npx CLI 不可用，不阻断开发
 
 ## 九、迭代开发计划（调整为「单端先行 → 平移」）
 
 ### 阶段一：Claude Code 单端 MVP（1~2 天）
 
+- TS 工程搭建：esbuild 构建配置、零依赖单文件产物（dist/）、`node dist/hooks/*.js` 直调验证
 - 编写 5 个阶段技能 + Router + status.md 规范
-- 实现 session-start.sh / user-prompt-submit.sh + install.sh（CC 端）
+- 实现 session-start / user-prompt-submit 两个 hook（TS）+ `.claude-plugin` 清单与 `hooks/hooks.json`
 - `.flow-neo` 工件体系与生命周期跑通；轻重分流与手动强制可用
-- **验收**：示例任务走通五阶段全工件；中断会话重启后凭 status.md 恢复（机制级）；`/context` 实测常驻 ≤ 2K
+- **验收**：`claude plugin marketplace add <本地目录>` 本地安装生效；示例任务走通五阶段全工件；中断会话重启后凭 status.md 恢复（机制级）；`/context` 实测常驻 ≤ 2K
 
 ### 阶段二：Codex 平移（0.5~1 天）
 
-- skills 复制分发 + AGENTS.md 标记段安装/升级/卸载脚本
+- `.codex-plugin/plugin.json` 清单 + `codex plugin marketplace` 本地目录安装验证
+- `npx flowneo init / remove` CLI（TS）：项目级 skills 复制 + AGENTS.md 标记段安全增删
 - 同一任务集在 Codex 端全流程走查
 - 产出双端能力差异清单（hooks 相关增强项在 Codex 端降级为引导级）
 
 ### 阶段三：完善版（2~3 天）
 
+- npm 发包（`npx flowneo` 正式入口）+ GitHub 仓库双端 marketplace 发布
 - 配置开关（提醒级别、流程启停、归档策略）
-- 工件 Schema 校验（CC 端 PostToolUse + 校验脚本，可选安装）
+- 工件 Schema 校验（CC 端 PostToolUse + TS/zod 校验，可选安装）
 - Token 账本实测：同任务集 vs Superpowers A/B 报告
-- 异常兜底纪律打磨、lint-router 体积把关
+- 异常兜底纪律打磨、`flowneo lint` Router 体积把关（≤1.5K tokens）
 
 ## 十、风险与对策
 
@@ -296,6 +337,8 @@ flowneo/                              # 插件仓库
 - **Codex 端无 hooks、强制性弱于 CC** → AGENTS.md 常驻 + status.md 读取纪律 + 阶段工件卡点（无工件不进下一阶段）双重兜底；对外如实标注能力分级
 - **平台官方规范变更** → 适配层隔离，仅更新对应端适配，内核不动
 - **长会话漂移** → 持续注入三层机制本身就是对策；压缩后凭 status.md + 工件恢复现场
+- **Node 运行时依赖** → 无 Node 环境自动降级为纯技能模式（Router 注入与 CLI 不可用，引导级能力全保留），安装器检测并明确提示
+- **dist 产物与源码漂移** → 构建产物提交仓库（marketplace 不跑 npm install），提交前强制 `npm run build`，CI 校验 dist 为最新编译结果
 
 ## 十一、全流程异常兜底与降级（话术按能力分级修正）
 
@@ -337,18 +380,18 @@ flowneo/                              # 插件仓库
 
 ## 十三、验收标准（新增，全部可测量）
 
-1. **安装识别**：双端安装后，技能被平台原生识别并列出（CC 技能列表 / Codex skills 列表）
+1. **一键安装**：双端 `plugin marketplace add` + `plugin install` 命令可用，技能被平台原生识别并列出；`npx flowneo init / remove` 项目级安装与安全卸载可用
 2. **常驻达标**：CC `/context` 与 Codex 上下文统计实测，FlowNeo 常驻注入 ≤ 2K tokens
 3. **A/B 对比**：同一任务集（1 轻 + 1 重）vs Superpowers，报告常驻体积、总 Token 消耗、阶段完整性三项对比
 4. **断点恢复**：会话中途终止重启，CC 端 hook 自动注入断点续作；Codex 端凭 Router 纪律读取 status.md 续作
-5. **工件正确性**：轻任务零工件仅代码；重任务五工件齐全落 current，归档后 history 快照正确、current 清空
+5. **工件正确性**：轻任务零工件仅代码；重任务五工件齐全落 `tasks/<slug>/`，归档后 history 快照正确、任务目录清空
 6. **安全卸载**：uninstall 后 AGENTS.md 标记段移除且用户自有内容无损，hooks 注销干净
 
 ## 十四、方案总结
 
 FlowNeo 为 Claude Code / OpenAI Codex 双平台通用工程化插件，完全对标并优化 Superpowers：
 
-- 以**官方标准目录与机制**（SKILL.md、AGENTS.md、hooks）实现双端原生安装，单一内核分发，不依赖平台不存在的机制
+- 以**双端官方插件体系**（`.claude-plugin` / `.codex-plugin` + marketplace 一键命令）实现安装分发，Markdown 技能内核 + TypeScript 零依赖适配层，不依赖平台不存在的机制
 - 以**精简持续注入**（Router ≤1.5K 常驻 + 每轮轻提醒）同时保住流程纪律与 Token 预算，解决「重注入高耗」与「轻约束漂移」的两难
 - 以**五阶段精简工作流 + 四阶结构化设计 + 轻重双分流**兼顾工程规范性与交付效率
 - 以**status.md 统一基座**贯通持续注入、断点续传、归档索引

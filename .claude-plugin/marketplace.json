@@ -1,0 +1,14 @@
+{
+  "name": "flowneo-marketplace",
+  "description": "FlowNeo 本地开发市场",
+  "owner": { "name": "huangjian" },
+  "plugins": [
+    {
+      "name": "flowneo",
+      "description": "FlowNeo — 轻量工程工作流插件",
+      "version": "0.2.0",
+      "source": "./",
+      "author": { "name": "huangjian" }
+    }
+  ]
+}
