@@ -2,7 +2,8 @@
   "files": [
     "package.json",
     ".claude-plugin/plugin.json",
-    ".claude-plugin/marketplace.json"
+    ".claude-plugin/marketplace.json",
+    ".codex-plugin/plugin.json"
   ],
   "audit": {
     "exclude": [
