@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 
+// src/cli/main.ts
+import { fileURLToPath } from "node:url";
+
 // src/lib/lint.ts
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -50,7 +53,7 @@ function lintAll(skillsDir) {
 // src/cli/main.ts
 var command = process.argv[2];
 if (command === "lint") {
-  const errors = lintAll(new URL("../../skills/", import.meta.url).pathname);
+  const errors = lintAll(fileURLToPath(new URL("../../skills/", import.meta.url)));
   if (errors.length > 0) {
     console.error("flowneo lint \u5931\u8D25\uFF1A\n" + errors.map((e) => ` - ${e}`).join("\n"));
     process.exit(1);
