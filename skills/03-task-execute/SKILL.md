@@ -9,6 +9,7 @@ description: FlowNeo 阶段三·分任务编码执行。当本任务 status.md �
 
 <HARD-GATE>
 只能实施 本任务 02-design-plan.md「四、任务拆解」表中列出的任务；表外变更必须先回写 02 再实施。
+若 config.stages.skipDesign=true 跳过了 02：按 01-need-explore.md 的核心目标编码，03 记录首行标注「设计简化：跳过 02」。
 </HARD-GATE>
 
 ## 执行步骤

@@ -18,6 +18,8 @@ description: FlowNeo 阶段二·结构化四阶方案设计。当本任务 statu
 ❌ 笼统：任务拆解：做登录功能
 ✅ 具体：任务 1 写 auth-service.test.ts；任务 2 实现 auth-service；任务 3 接入 audit-log
 
+> 若 `.flow-neo/config/plugin.config.json` 的 `stages.skipDesign=true`，本阶段可跳过：直接用 Skill 工具调用 flowneo-task-execute，并在 03 记录首行标注「设计简化：跳过 02」。
+
 <HARD-GATE>
 本任务 02-design-plan.md 四段未齐全、且未经用户确认（或标注假设）前，禁止创建/修改任何业务代码文件。
 </HARD-GATE>
