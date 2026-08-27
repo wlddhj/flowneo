@@ -19,7 +19,7 @@ export const DEFAULT_CONFIG: Config = {
 
 export function readConfig(cwd: string): Config {
   const file = join(cwd, '.flow-neo/config/plugin.config.json')
-  if (!existsSync(file)) return { ...DEFAULT_CONFIG }
+  if (!existsSync(file)) return structuredClone(DEFAULT_CONFIG)
   try {
     const raw = JSON.parse(readFileSync(file, 'utf8'))
     return {
@@ -30,6 +30,6 @@ export function readConfig(cwd: string): Config {
       stages: { ...DEFAULT_CONFIG.stages, ...raw.stages },
     }
   } catch {
-    return { ...DEFAULT_CONFIG }
+    return structuredClone(DEFAULT_CONFIG)
   }
 }

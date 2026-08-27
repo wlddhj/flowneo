@@ -24,6 +24,11 @@ describe('readConfig', () => {
     expect(c.archive.strategy).toBe('prompt')
     expect(c.lint.routerLimit).toBe(1500)
   })
+  it('返回值修改不污染 DEFAULT_CONFIG', () => {
+    const c = readConfig(dir)
+    c.reminders.perTurn = false
+    expect(DEFAULT_CONFIG.reminders.perTurn).toBe(true)
+  })
   it('格式错乱返回默认值', () => {
     mkdirSync(join(dir, '.flow-neo/config'), { recursive: true })
     writeFileSync(join(dir, '.flow-neo/config/plugin.config.json'), 'not json')
