@@ -1,6 +1,6 @@
 ---
 name: flowneo-design-plan
-description: FlowNeo 阶段二·结构化四阶方案设计。当 status.md 的 stage 为 2 时使用。产出唯一设计文档 .flow-neo/current/02-design-plan.md，固定四阶：需求规格、功能设计、架构/数据设计、任务拆解，作为编码与审查的唯一依据。
+description: FlowNeo 阶段二·结构化四阶方案设计。当 status.md 的 stage 为 2 时使用。产出唯一设计文档 .flow-neo/tasks/<本任务slug>/02-design-plan.md，固定四阶：需求规格、功能设计、架构/数据设计、任务拆解，作为编码与审查的唯一依据。
 ---
 
 # 阶段二：结构化四阶方案设计
@@ -8,14 +8,14 @@ description: FlowNeo 阶段二·结构化四阶方案设计。当 status.md 的 
 目标：定标准、定业务、定底层、定落地路径。本文档是后续编码与审查的唯一依据，规格与设计合一、不重复。
 
 <HARD-GATE>
-02-design-plan.md 四段未齐全、且未经用户确认（或标注假设）前，禁止创建/修改任何业务代码文件。
+本任务 02-design-plan.md 四段未齐全、且未经用户确认（或标注假设）前，禁止创建/修改任何业务代码文件。
 </HARD-GATE>
 
 ## 执行步骤
 
-1. 读取 01-need-explore.md（若为轻量简化启动则直接读用户需求）
+1. 读取本任务 01-need-explore.md（若为轻量简化启动则直接读用户需求）
 2. 依次完成四阶设计（模板四段固定，不可缺省；不适用的字段标注「不适用」）
-3. 写入 .flow-neo/current/02-design-plan.md
+3. 写入 .flow-neo/tasks/<本任务slug>/02-design-plan.md
 4. 更新 status.md：stage: 3，artifacts 追加 02-design-plan.md
 5. 用 Skill 工具调用 flowneo-task-execute 进入阶段三
 
