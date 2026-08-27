@@ -66,6 +66,8 @@ describe('buildSessionContext', () => {
     put('.claude/skills/_router/router.md', '# R')
     const ctx = buildSessionContext(dir, undefined, null)
     expect(ctx).toContain('无进行中任务')
+    expect(ctx).toContain('session_id: unknown')
+    expect(ctx).toContain('bound: none')
   })
 })
 
