@@ -9,7 +9,7 @@
     "test": "vitest run --passWithNoTests",
     "typecheck": "tsc --noEmit",
     "lint": "npm run build && node dist/cli.js lint",
-    "verify": "node esbuild.mjs && git diff --exit-code dist/"
+    "verify": "node esbuild.mjs && git diff HEAD --exit-code dist/"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
