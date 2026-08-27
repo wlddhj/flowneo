@@ -1,2 +1,15 @@
-console.error('flowneo cli: not implemented yet')
-process.exit(1)
+import { lintAll } from '../lib/lint.ts'
+
+const command = process.argv[2]
+
+if (command === 'lint') {
+  const errors = lintAll(new URL('../../skills/', import.meta.url).pathname)
+  if (errors.length > 0) {
+    console.error('flowneo lint 失败：\n' + errors.map((e) => ` - ${e}`).join('\n'))
+    process.exit(1)
+  }
+  console.log('flowneo lint 通过')
+} else {
+  console.error('用法：flowneo lint')
+  process.exit(1)
+}
