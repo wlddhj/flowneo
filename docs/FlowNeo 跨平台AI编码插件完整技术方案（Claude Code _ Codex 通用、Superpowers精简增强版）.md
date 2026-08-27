@@ -1,6 +1,7 @@
 # FlowNeo 跨平台AI编码插件技术方案 v2.0（Claude Code / Codex 通用、Superpowers 精简增强版）
 
 > **修订记录**
+> - v2.2（2026-08-27）：多任务并行支持——`.flow-neo/tasks/<slug>/` 取代 `current/` 单活跃区；新增会话级绑定 `sessions/<session-id>.md`（CC 机制级多会话隔离）；轻任务零文件化；status.md 去 mode 增 slug；Router/技能话术全链路切换。
 > - v2.1（2026-08-27）：①适配层与工具链确定采用 **TypeScript**（esbuild 零依赖单文件产物，运行时仅依赖 Node ≥18）；②修正 Codex 端为**官方插件体系**（`.codex-plugin/plugin.json` + `codex plugin marketplace`，v2.0「无插件市场」表述过时），但 Codex 无 hooks 能力的结论不变；③新增双端**一键安装命令**与 `npx flowneo` 兜底入口；④仓库结构按「Markdown 技能内核 + TypeScript 适配层」重组。
 > - v2.0（2026-08-27）：依据可行性评估全面修订。①修正双平台目录与机制为 2026 官方标准（SKILL.md 目录式结构、AGENTS.md 常驻、真实 hooks 体系）；②新增「常驻调度核心 Router + 持续注入」机制，对抗长会话流程漂移；③自动化承诺降级为可实现话术（机制级 / 引导级分级标注）；④Token 效果由百分比宣称改为可测量验收标准；⑤迭代路径调整为「Claude Code 单端先行 → Codex 平移」；⑥全文去重收敛。
 > - v1.0（2026-08-27）：初稿。
@@ -71,20 +72,22 @@ FlowNeo 定位：**轻量、双平台原生安装、精简持续注入的 Superp
 一段固定精简调度指令，**硬性体积上限约 1.5K tokens**，内容包含：
 
 1. **五阶段状态机 + 轻重双分流判定规则**（每阶段一句话职责）
-2. **每阶段唯一工件路径**（`.flow-neo/current/01~05` 固定文件名）
+2. **每阶段唯一工件路径**（`.flow-neo/tasks/<slug>/01~05` 固定文件名）
 3. **阶段流转纪律**：未产出对应工件不得进入下一阶段；模式与阶段变化必须写入 status.md
-4. **启动动作**：读取 `.flow-neo/current/status.md` 恢复任务上下文（断点续传的统一基座）
+4. **启动动作**：读取 `.flow-neo/tasks/<slug>/status.md` 恢复任务上下文（断点续传的统一基座）
 5. **上下文截断纪律**：超长文件/日志/Diff 只保留结论与关键片段，工具输出不整段复读
 
 ### 3. 状态文件 status.md（持续注入与断点续传的统一基座）
 
-`.flow-neo/current/status.md`，轻量状态文件（20 行以内）：
+每个任务独立一份，配合 `.flow-neo/sessions/<session-id>.md` 会话绑定实现多任务并行。
+
+`.flow-neo/tasks/<slug>/status.md`，轻量状态文件（20 行以内）：
 
 ```markdown
 # FlowNeo 任务状态
-mode: full | light          # 当前流程模式
-stage: 2-design-plan        # 当前阶段（01~05 / -）
 task: 用户中心重构           # 任务名
+slug: user-center-refactor   # 任务 slug（目录名即唯一标识）
+stage: 2-design-plan        # 当前阶段（01~05 / -）
 artifacts: [01-need-explore.md, 02-design-plan.md(进行中)]
 updated: 2026-08-27 11:30
 ```
@@ -242,15 +245,13 @@ npx flowneo remove                  # 安全卸载（AGENTS.md 标记段清理�
 
 ```text
 项目根/.flow-neo/
-├── current/                          # 当前任务唯一活跃区
-│   ├── status.md                     # 状态文件（注入与断点的基座）
-│   ├── 01-need-explore.md
-│   ├── 02-design-plan.md
-│   ├── 03-task-record.md
-│   ├── 04-code-review.md
-│   └── 05-archive-summary.md
-├── history/                          # 历史迭代归档（日期-版本目录快照，零覆盖）
-└── config/plugin.config.json         # 全局持久化配置
+├── tasks/                          # 进行中的重任务（每任务独立）
+│   └── <slug>/
+│       ├── status.md               # 状态文件（注入与断点的基座）
+│       └── 01~05 阶段工件（懒生成）
+├── sessions/                       # 会话→任务绑定（CC 机制级）
+│   └── <session-id>.md
+└── history/                        # 历史迭代归档（<YYYYMMDD>-<slug>/，零覆盖）
 ```
 
 ### 4. 四层核心架构
@@ -276,9 +277,9 @@ npx flowneo remove                  # 安全卸载（AGENTS.md 标记段清理�
 
 ### 2. 任务生命周期流转
 
-- **新任务启动**：判定轻重模式写入 status.md；复杂任务初始化 current 工件（懒生成）
-- **任务收尾**：复杂任务由 05 技能将 current 全套迁移至 `history/日期-版本/`，形成快照，**绝不覆盖历史**；轻量任务仅保留代码变更
-- **历史追溯**：history 目录按版本快照回溯；当前任务永远只读 current，无旧数据干扰
+- **新任务启动**：01 技能创建 `tasks/<slug>/` 并绑定会话；轻任务零文件
+- **任务收尾**：05 迁移至 `history/` 并清理绑定
+- **历史追溯**：history 目录按 `<YYYYMMDD>-<slug>/` 版本快照回溯；各任务独立互不干扰
 - **核心约束**：零覆盖、唯一数据源（design-plan.md 唯一承载设计）、文档懒生成、文件名固定禁止自定义、双端完全一致
 
 ## 七、多方能力对比
@@ -383,7 +384,7 @@ npx flowneo remove                  # 安全卸载（AGENTS.md 标记段清理�
 2. **常驻达标**：CC `/context` 与 Codex 上下文统计实测，FlowNeo 常驻注入 ≤ 2K tokens
 3. **A/B 对比**：同一任务集（1 轻 + 1 重）vs Superpowers，报告常驻体积、总 Token 消耗、阶段完整性三项对比
 4. **断点恢复**：会话中途终止重启，CC 端 hook 自动注入断点续作；Codex 端凭 Router 纪律读取 status.md 续作
-5. **工件正确性**：轻任务零工件仅代码；重任务五工件齐全落 current，归档后 history 快照正确、current 清空
+5. **工件正确性**：轻任务零工件仅代码；重任务五工件齐全落 `tasks/<slug>/`，归档后 history 快照正确、任务目录清空
 6. **安全卸载**：uninstall 后 AGENTS.md 标记段移除且用户自有内容无损，hooks 注销干净
 
 ## 十四、方案总结
