@@ -16,19 +16,19 @@ export function makeSlug(name: string, existing: string[]): string {
 }
 
 export function readBinding(cwd: string, sessionId: string): string | null {
-  const file = join(cwd, 'sessions', `${sessionId}.md`)
+  const file = join(cwd, '.flow-neo/sessions', `${sessionId}.md`)
   if (!existsSync(file)) return null
   return readFileSync(file, 'utf8').match(/^task:\s*(\S+)\s*$/m)?.[1] ?? null
 }
 
 export function writeBinding(cwd: string, sessionId: string, slug: string): void {
-  const dir = join(cwd, 'sessions')
+  const dir = join(cwd, '.flow-neo/sessions')
   mkdirSync(dir, { recursive: true })
   writeFileSync(join(dir, `${sessionId}.md`), `task: ${slug}\n`)
 }
 
 export function listTasks(cwd: string): TaskSummary[] {
-  const dir = join(cwd, 'tasks')
+  const dir = join(cwd, '.flow-neo/tasks')
   if (!existsSync(dir)) return []
   const out: TaskSummary[] = []
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -43,7 +43,7 @@ export function listTasks(cwd: string): TaskSummary[] {
 }
 
 export function cleanSessions(cwd: string, maxAgeMs: number): number {
-  const dir = join(cwd, 'sessions')
+  const dir = join(cwd, '.flow-neo/sessions')
   if (!existsSync(dir)) return 0
   let removed = 0
   const cutoff = Date.now() - maxAgeMs

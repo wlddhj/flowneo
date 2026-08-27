@@ -38,8 +38,8 @@ describe('readBinding/writeBinding', () => {
 describe('listTasks', () => {
   it('读取各任务摘要并按 slug 排序', () => {
     for (const [slug, task, stage] of [['b-task', '任务B', '2'], ['a-task', '任务A', '1']] as const) {
-      mkdirSync(join(dir, 'tasks', slug), { recursive: true })
-      writeFileSync(join(dir, 'tasks', slug, 'status.md'), `task: ${task}\nslug: ${slug}\nstage: ${stage}\n`)
+      mkdirSync(join(dir, '.flow-neo/tasks', slug), { recursive: true })
+      writeFileSync(join(dir, '.flow-neo/tasks', slug, 'status.md'), `task: ${task}\nslug: ${slug}\nstage: ${stage}\n`)
     }
     expect(listTasks(dir)).toEqual([
       { slug: 'a-task', task: '任务A', stage: '1' },
@@ -53,9 +53,9 @@ describe('listTasks', () => {
 
 describe('cleanSessions', () => {
   it('删除超龄绑定文件，保留新文件，返回删除数', () => {
-    mkdirSync(join(dir, 'sessions'), { recursive: true })
-    const old = join(dir, 'sessions', 'old.md')
-    const fresh = join(dir, 'sessions', 'fresh.md')
+    mkdirSync(join(dir, '.flow-neo/sessions'), { recursive: true })
+    const old = join(dir, '.flow-neo/sessions', 'old.md')
+    const fresh = join(dir, '.flow-neo/sessions', 'fresh.md')
     writeFileSync(old, 'task: a')
     writeFileSync(fresh, 'task: b')
     const week = 7 * 24 * 3600 * 1000
