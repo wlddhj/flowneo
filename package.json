@@ -1,6 +1,6 @@
 {
   "name": "flowneo",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "FlowNeo — 轻量跨平台 AI 编码工程工作流插件（Claude Code / Codex）",
   "type": "module",
   "bin": {
