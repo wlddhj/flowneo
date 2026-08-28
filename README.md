@@ -16,6 +16,7 @@ Codex：
 ```bash
 codex plugin marketplace add <owner>/flowneo
 codex plugin install flowneo@flowneo-marketplace
+# 本地目录安装（已真机验证）：codex plugin add <本仓库路径>
 ```
 
 项目级安装（本仓库构建后）：
@@ -31,14 +32,21 @@ node dist/cli.js remove --all --project  # 安全卸载
 
 安装后任意会话中：
 
-- **轻任务**（改 Bug / 改配置 / 补注释 / 局部微调）：直接说需求，FlowNeo 走轻量流——零工件文件，仅 status.md 一行记录
+- **轻任务**（改 Bug / 改配置 / 补注释 / 局部微调）：直接说需求，FlowNeo 走轻量流——零文件、不留任何痕迹
 - **重任务**（新功能 / 模块重构 / 数据表或接口设计）：说「新任务 <名称>」，FlowNeo 引导走五阶段
+
+**多任务并行**：不同会话可各自推进不同任务（会话级绑定互不干扰）：
+
+```
+任务列表              # 查看所有进行中任务及阶段
+继续 <名称或slug>     # 切换/恢复某任务，从断点续作
+```
 
 ## 五阶段工作流（重任务）
 
 1. 需求探索 → 2. 结构化四阶设计（需求规格 / 功能设计 / 架构数据 / 任务拆解）→ 3. 分任务编码 → 4. 代码自查 → 5. 交付归档
 
-每任务独立 `.flow-neo/tasks/<slug>/` 目录，会话级绑定 `.flow-neo/sessions/<session-id>.md` 支持多任务并行。
+每任务独立 `.flow-neo/tasks/<slug>/` 目录（status.md + 01~05 工件），会话级绑定 `.flow-neo/sessions/<session-id>.md` 支持多任务并行，交付后迁移 `.flow-neo/history/` 形成永不覆盖的版本快照。CC 端还有 PostToolUse 工件校验：写 01~05 工件缺章节时自动提醒（仅警告不阻断）。
 
 ## 与 Superpowers 的差异
 
@@ -48,6 +56,9 @@ node dist/cli.js remove --all --project  # 安全卸载
 | 任务分流 | 一刀切全流程 | 轻重双流，轻任务零文档 |
 | 设计 | 规格与设计分离 | 四阶递进单文档 |
 | 多任务 | 单活跃任务 | 多任务并行 + 会话级绑定 |
+| 工件校验 | 无 | PostToolUse 章节校验（仅 CC 端） |
+| 可配置化 | 规则臃肿难改 | 五组配置开关（含跳阶段） |
+| 技术栈 | bash hooks + 多平台垫片 | TypeScript 零依赖单文件 |
 | 平台 | 多平台兼容冗余 | CC + Codex 双端，无冗余 |
 
 ## 配置
