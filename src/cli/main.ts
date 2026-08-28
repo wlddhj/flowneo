@@ -14,7 +14,10 @@ function parseOpts(): InitOpts {
 }
 
 if (command === 'lint') {
-  const errors = lintAll(fileURLToPath(new URL('../skills/', import.meta.url)))
+  const errors = lintAll(
+    fileURLToPath(new URL('../skills/', import.meta.url)),
+    fileURLToPath(new URL('../AGENTS-flowneo.md', import.meta.url)),
+  )
   if (errors.length > 0) {
     console.error('flowneo lint 失败：\n' + errors.map((e) => ` - ${e}`).join('\n'))
     process.exit(1)
@@ -32,7 +35,7 @@ if (command === 'lint') {
   for (const d of done) console.log(` - ${d}`)
 } else {
   console.error('用法：flowneo <lint | init | remove> [--claude|--codex|--all] [--project|--user]')
-  console.error('  lint               校验技能与 Router')
+  console.error('  lint               校验技能、Router 与 AGENTS 同步')
   console.error('  init               安装 FlowNeo 到当前项目（默认 --all --project）')
   console.error('  remove             从当前项目安全卸载（保留用户自有技能/hooks/AGENTS 内容）')
   process.exit(1)

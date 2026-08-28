@@ -18,7 +18,16 @@ function estimateTokens(text) {
 var ROUTER_TOKEN_LIMIT = 1500;
 var NAME_RE = /^flowneo-[a-z0-9-]+$/;
 var DESC_MIN = 20;
-function lintAll(skillsDir) {
+function lintAgentsSync(agentsFile, routerFile) {
+  if (!existsSync(agentsFile)) return [`\u7F3A\u5931 ${agentsFile}`];
+  if (!existsSync(routerFile)) return [];
+  const stripped = readFileSync(agentsFile, "utf8").trim().replace(/^<!-- FLOWNEO:BEGIN -->/, "").replace(/<!-- FLOWNEO:END -->$/, "").trim();
+  if (stripped !== readFileSync(routerFile, "utf8").trim()) {
+    return ["AGENTS-flowneo.md \u4E0E router.md \u4E0D\u540C\u6B65\uFF08Codex \u7AEF\u8BDD\u672F\u6F02\u79FB\uFF09"];
+  }
+  return [];
+}
+function lintAll(skillsDir, agentsFile) {
   const errors = [];
   const routerFile = join(skillsDir, "_router/router.md");
   if (!existsSync(routerFile)) {
@@ -29,6 +38,7 @@ function lintAll(skillsDir) {
       errors.push(`router.md \u4F30\u7B97 ${tokens} tokens\uFF0C\u8D85\u9650 ${ROUTER_TOKEN_LIMIT}`);
     }
   }
+  if (agentsFile) errors.push(...lintAgentsSync(agentsFile, routerFile));
   if (!existsSync(skillsDir)) return errors;
   for (const entry of readdirSync(skillsDir, { withFileTypes: true })) {
     if (!entry.isDirectory() || entry.name.startsWith("_")) continue;
@@ -201,7 +211,10 @@ function parseOpts() {
   return { target, scope };
 }
 if (command === "lint") {
-  const errors = lintAll(fileURLToPath(new URL("../skills/", import.meta.url)));
+  const errors = lintAll(
+    fileURLToPath(new URL("../skills/", import.meta.url)),
+    fileURLToPath(new URL("../AGENTS-flowneo.md", import.meta.url))
+  );
   if (errors.length > 0) {
     console.error("flowneo lint \u5931\u8D25\uFF1A\n" + errors.map((e) => ` - ${e}`).join("\n"));
     process.exit(1);
@@ -218,7 +231,7 @@ if (command === "lint") {
   for (const d of done) console.log(` - ${d}`);
 } else {
   console.error("\u7528\u6CD5\uFF1Aflowneo <lint | init | remove> [--claude|--codex|--all] [--project|--user]");
-  console.error("  lint               \u6821\u9A8C\u6280\u80FD\u4E0E Router");
+  console.error("  lint               \u6821\u9A8C\u6280\u80FD\u3001Router \u4E0E AGENTS \u540C\u6B65");
   console.error("  init               \u5B89\u88C5 FlowNeo \u5230\u5F53\u524D\u9879\u76EE\uFF08\u9ED8\u8BA4 --all --project\uFF09");
   console.error("  remove             \u4ECE\u5F53\u524D\u9879\u76EE\u5B89\u5168\u5378\u8F7D\uFF08\u4FDD\u7559\u7528\u6237\u81EA\u6709\u6280\u80FD/hooks/AGENTS \u5185\u5BB9\uFF09");
   process.exit(1);

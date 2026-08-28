@@ -21,7 +21,12 @@
 - 「任务列表」：逐行输出各任务 task + stage
 - 未绑定却动重活 = 违规：先新建或绑定任务
 
-## 五阶段（每任务独立串行，禁止跳阶段）
+## 配置开关（读 .flow-neo/config/plugin.config.json，缺省全 false）
+
+- `stages.skipDesign=true`：重任务可从阶段 1 直接进入阶段 3（03 记录须补「设计简化」标注）
+- `stages.skipReview=true`：阶段 3 完成后跳过阶段 4 直接归档
+
+## 五阶段（每任务独立串行，禁止未经配置跳阶段）
 
 | 阶段 | 调用技能（Skill 工具） | 产出工件（.flow-neo/tasks/<slug>/） |
 |---|---|---|
