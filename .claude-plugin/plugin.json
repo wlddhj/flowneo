@@ -1,7 +1,7 @@
 {
   "name": "flowneo",
   "description": "FlowNeo — 轻量工程工作流：精简 Router 持续注入 + 五阶段闭环 + 四阶结构化设计 + 多任务并行",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "author": {
     "name": "huangjian"
   },
