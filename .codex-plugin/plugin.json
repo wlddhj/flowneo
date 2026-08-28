@@ -14,5 +14,7 @@
     "router",
     "engineering",
     "multi-task"
-  ]
+  ],
+  "skills": "./skills/",
+  "hooks": {}
 }

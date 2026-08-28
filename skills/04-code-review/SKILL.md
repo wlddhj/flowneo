@@ -11,6 +11,8 @@ description: FlowNeo 阶段四·代码自查审查。当本任务 status.md 的 
 NO REVIEW CLOSED WITHOUT ROOT CAUSE NAMED
 ```
 
+> 若 `.flow-neo/config/plugin.config.json` 的 `stages.skipReview=true`，本阶段可跳过：直接用 Skill 工具调用 flowneo-git-archive，并在 05 归档记录标注「跳过审查」。
+
 ## 审查清单（逐项执行）
 
 1. 设计一致性：实现与 本任务 02-design-plan.md 逐条比对，偏差要么修复、要么回写设计

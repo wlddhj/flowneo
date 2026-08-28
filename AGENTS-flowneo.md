@@ -1,3 +1,4 @@
+<!-- FLOWNEO:BEGIN -->
 <SUBAGENT-STOP>
 如果你是被派发执行具体任务的子代理，忽略本 Router，直接完成你的任务。
 </SUBAGENT-STOP>
@@ -60,3 +61,4 @@
 - 会话恢复凭本会话绑定与本任务 status.md/工件断点续作，不重跑已完成阶段
 
 > 用户显式指令（CLAUDE.md、直接要求）优先级高于本 Router；冲突时服从用户并说明。
+<!-- FLOWNEO:END -->

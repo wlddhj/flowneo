@@ -1,6 +1,7 @@
-# FlowNeo 跨平台AI编码插件技术方案 v2.2（Claude Code / Codex 通用、Superpowers 精简增强版）
+# FlowNeo 跨平台AI编码插件技术方案 v2.3（Claude Code / Codex 通用、Superpowers 精简增强版）
 
 > **修订记录**
+> - v2.3（2026-08-28）：v0.3.0——Codex 端清单与标记段落地；CLI init/remove 项目级双端安装；配置系统五组开关（含跳阶段）；PostToolUse 章节校验（仅警告）。
 > - v2.2（2026-08-27）：多任务并行支持——`.flow-neo/tasks/<slug>/` 取代 `current/` 单活跃区；新增会话级绑定 `sessions/<session-id>.md`（CC 机制级多会话隔离）；轻任务零文件化；status.md 去 mode 增 slug；Router/技能话术全链路切换。
 > - v2.1（2026-08-27）：①适配层与工具链确定采用 **TypeScript**（esbuild 零依赖单文件产物，运行时仅依赖 Node ≥18）；②修正 Codex 端为**官方插件体系**（`.codex-plugin/plugin.json` + `codex plugin marketplace`，v2.0「无插件市场」表述过时），但 Codex 无 hooks 能力的结论不变；③新增双端**一键安装命令**与 `npx flowneo` 兜底入口；④仓库结构按「Markdown 技能内核 + TypeScript 适配层」重组。
 > - v2.0（2026-08-27）：依据可行性评估全面修订。①修正双平台目录与机制为 2026 官方标准（SKILL.md 目录式结构、AGENTS.md 常驻、真实 hooks 体系）；②新增「常驻调度核心 Router + 持续注入」机制，对抗长会话流程漂移；③自动化承诺降级为可实现话术（机制级 / 引导级分级标注）；④Token 效果由百分比宣称改为可测量验收标准；⑤迭代路径调整为「Claude Code 单端先行 → Codex 平移」；⑥全文去重收敛。

@@ -2,7 +2,7 @@ import { describe, expect, it, beforeEach } from 'vitest'
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { lintAll } from '../src/lib/lint.ts'
+import { lintAll, lintAgentsSync } from '../src/lib/lint.ts'
 
 let dir: string
 beforeEach(() => {
@@ -34,6 +34,11 @@ describe('lintAll', () => {
     const errors = lintAll(dir)
     expect(errors.some((e) => e.includes('2000') && e.includes('1500'))).toBe(true)
   })
+  it('自定义 routerLimit（lint.routerLimit 接线）放宽后同一 router 通过', () => {
+    put('_router/router.md', '一'.repeat(2000))
+    expect(lintAll(dir, undefined, 3000)).toEqual([])
+    expect(lintAll(dir, undefined, 1000).some((e) => e.includes('1000'))).toBe(true)
+  })
   it('合规 router + 技能全部通过', () => {
     put('_router/router.md', '# Router')
     put('01-demo/SKILL.md', GOOD_SKILL)
@@ -53,5 +58,25 @@ describe('lintAll', () => {
     put('_router/router.md', '# Router')
     mkdirSync(join(dir, '01-demo'))
     expect(lintAll(dir)[0]).toContain('SKILL.md')
+  })
+})
+
+describe('lintAgentsSync（AGENTS-flowneo.md 与 router.md 同步）', () => {
+  it('AGENTS 与 router 同步时 lint 该项通过', () => {
+    const router = '# Router\n\n## 配置开关\n\n- demo 开关\n'
+    put('_router/router.md', router)
+    put('AGENTS-flowneo.md', `<!-- FLOWNEO:BEGIN -->\n${router}<!-- FLOWNEO:END -->\n`)
+    expect(lintAgentsSync(join(dir, 'AGENTS-flowneo.md'), join(dir, '_router/router.md'))).toEqual([])
+    // 经 lintAll 第二参数接入后全量亦通过
+    expect(lintAll(dir, join(dir, 'AGENTS-flowneo.md'))).toEqual([])
+  })
+  it('AGENTS 某行被改动后报不同步错误', () => {
+    put('_router/router.md', '# Router\n\n## 配置开关\n\n- demo 开关\n')
+    put(
+      'AGENTS-flowneo.md',
+      '<!-- FLOWNEO:BEGIN -->\n# Router\n\n## 配置开关\n\n- 被人为改动的行\n<!-- FLOWNEO:END -->\n',
+    )
+    const errors = lintAll(dir, join(dir, 'AGENTS-flowneo.md'))
+    expect(errors).toEqual(['AGENTS-flowneo.md 与 router.md 不同步（Codex 端话术漂移）'])
   })
 })
