@@ -22,15 +22,19 @@ export function lintAgentsSync(agentsFile: string, routerFile: string): string[]
   return []
 }
 
-export function lintAll(skillsDir: string, agentsFile?: string): string[] {
+export function lintAll(
+  skillsDir: string,
+  agentsFile?: string,
+  routerLimit: number = ROUTER_TOKEN_LIMIT,
+): string[] {
   const errors: string[] = []
   const routerFile = join(skillsDir, '_router/router.md')
   if (!existsSync(routerFile)) {
     errors.push(`缺失 ${routerFile}`)
   } else {
     const tokens = estimateTokens(readFileSync(routerFile, 'utf8'))
-    if (tokens > ROUTER_TOKEN_LIMIT) {
-      errors.push(`router.md 估算 ${tokens} tokens，超限 ${ROUTER_TOKEN_LIMIT}`)
+    if (tokens > routerLimit) {
+      errors.push(`router.md 估算 ${tokens} tokens，超限 ${routerLimit}`)
     }
   }
   if (agentsFile) errors.push(...lintAgentsSync(agentsFile, routerFile))

@@ -27,15 +27,15 @@ function lintAgentsSync(agentsFile, routerFile) {
   }
   return [];
 }
-function lintAll(skillsDir, agentsFile) {
+function lintAll(skillsDir, agentsFile, routerLimit = ROUTER_TOKEN_LIMIT) {
   const errors = [];
   const routerFile = join(skillsDir, "_router/router.md");
   if (!existsSync(routerFile)) {
     errors.push(`\u7F3A\u5931 ${routerFile}`);
   } else {
     const tokens = estimateTokens(readFileSync(routerFile, "utf8"));
-    if (tokens > ROUTER_TOKEN_LIMIT) {
-      errors.push(`router.md \u4F30\u7B97 ${tokens} tokens\uFF0C\u8D85\u9650 ${ROUTER_TOKEN_LIMIT}`);
+    if (tokens > routerLimit) {
+      errors.push(`router.md \u4F30\u7B97 ${tokens} tokens\uFF0C\u8D85\u9650 ${routerLimit}`);
     }
   }
   if (agentsFile) errors.push(...lintAgentsSync(agentsFile, routerFile));
@@ -201,6 +201,33 @@ function remove(opts, cwd) {
   return done;
 }
 
+// src/lib/config.ts
+import { existsSync as existsSync3, readFileSync as readFileSync3 } from "node:fs";
+import { join as join3 } from "node:path";
+var DEFAULT_CONFIG = {
+  reminders: { perTurn: true },
+  archive: { strategy: "prompt" },
+  lint: { routerLimit: 1500 },
+  schema: { strictness: "loose" },
+  stages: { skipDesign: false, skipReview: false }
+};
+function readConfig(cwd) {
+  const file = join3(cwd, ".flow-neo/config/plugin.config.json");
+  if (!existsSync3(file)) return structuredClone(DEFAULT_CONFIG);
+  try {
+    const raw = JSON.parse(readFileSync3(file, "utf8"));
+    return {
+      reminders: { ...DEFAULT_CONFIG.reminders, ...raw.reminders },
+      archive: { ...DEFAULT_CONFIG.archive, ...raw.archive },
+      lint: { ...DEFAULT_CONFIG.lint, ...raw.lint },
+      schema: { ...DEFAULT_CONFIG.schema, ...raw.schema },
+      stages: { ...DEFAULT_CONFIG.stages, ...raw.stages }
+    };
+  } catch {
+    return structuredClone(DEFAULT_CONFIG);
+  }
+}
+
 // src/cli/main.ts
 var command = process.argv[2];
 var args = process.argv.slice(3);
@@ -213,7 +240,8 @@ function parseOpts() {
 if (command === "lint") {
   const errors = lintAll(
     fileURLToPath(new URL("../skills/", import.meta.url)),
-    fileURLToPath(new URL("../AGENTS-flowneo.md", import.meta.url))
+    fileURLToPath(new URL("../AGENTS-flowneo.md", import.meta.url)),
+    readConfig(process.cwd()).lint.routerLimit
   );
   if (errors.length > 0) {
     console.error("flowneo lint \u5931\u8D25\uFF1A\n" + errors.map((e) => ` - ${e}`).join("\n"));

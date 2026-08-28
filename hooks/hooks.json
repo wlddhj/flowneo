@@ -17,6 +17,7 @@
     ],
     "PostToolUse": [
       {
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/dist/hooks/post-tool-use.js\"", "async": false }
         ]

@@ -14,10 +14,11 @@
 **配置系统**
 - `.flow-neo/config/plugin.config.json` 五组配置：reminders.perTurn / archive.strategy / lint.routerLimit / schema.strictness / stages.skipDesign+skipReview
 - hook 读 config：每轮提醒可关；Router/技能话术感知跳阶段开关（默认 false 保五阶段纪律）
+- lint.routerLimit 与 schema.strictness 已接线生效（lint 命令与 PostToolUse hook 实读配置）；archive.strategy 为预留字段（v0.3.0 暂未生效）
 
 **Schema 校验**
 - PostToolUse hook + 章节清单校验（01~05 五工件必填章节，纯 TS 零依赖实现）
-- 失败仅 stderr 警告不阻断（exit 0 纪律）
+- 失败经 `hookSpecificOutput.additionalContext` 注入警告不阻断（exit 0 纪律）——真机验证发现 -p 会话 stderr 不可见，已从 stderr 通道切换
 
 ## v0.2.0（2026-08-27）— 多任务并行支持
 

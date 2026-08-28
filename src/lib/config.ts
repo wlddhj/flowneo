@@ -3,6 +3,7 @@ import { join } from 'node:path'
 
 export interface Config {
   reminders: { perTurn: boolean }
+  /** archive.strategy 为预留字段，v0.3.0 暂未生效 */
   archive: { strategy: 'auto' | 'manual' | 'prompt' }
   lint: { routerLimit: number }
   schema: { strictness: 'strict' | 'loose' }

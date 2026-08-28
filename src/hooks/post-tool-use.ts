@@ -1,6 +1,7 @@
 import { readFileSync, existsSync } from 'node:fs'
 import { basename } from 'node:path'
 import { validateArtifact, ARTIFACT_SCHEMAS } from '../lib/schema.ts'
+import { readConfig } from '../lib/config.ts'
 
 interface PostToolUseInput {
   tool_name?: string
@@ -23,8 +24,16 @@ if (!existsSync(filePath)) process.exit(0)
 
 const warnings = validateArtifact(fileName, readFileSync(filePath, 'utf8'))
 if (warnings.length > 0) {
-  console.error(
-    `【FlowNeo Schema】${fileName} 校验警告（仅提示不阻断）：\n  - ${warnings.join('\n  - ')}\n  可运行 flowneo lint 查看详情`,
+  // schema.strictness 接线：strict 时话术升级，指明须补齐后再继续；loose 维持仅提示
+  const strict = readConfig(process.cwd()).schema.strictness === 'strict'
+  const tail = strict ? '（strict 模式：请立即补齐后再继续）' : ''
+  const message = `【FlowNeo Schema】${fileName} 校验警告（仅提示不阻断）：\n  - ${warnings.join('\n  - ')}\n  请补齐上述缺失章节后继续${tail}`
+  // 真机验证（2026-08-28，claude 2.1.133 -p）：stderr 既不进模型上下文也不进会话输出，
+  // 故改用 PostToolUse additionalContext 通道注入警告，保持 exit 0 不阻断
+  process.stdout.write(
+    JSON.stringify({
+      hookSpecificOutput: { hookEventName: 'PostToolUse', additionalContext: message },
+    }),
   )
 }
 process.exit(0)

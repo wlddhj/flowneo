@@ -18,7 +18,14 @@ codex plugin marketplace add <owner>/flowneo
 codex plugin install flowneo@flowneo-marketplace
 ```
 
-项目级兜底（未来版本）：`npx flowneo init`
+项目级安装（本仓库构建后）：
+
+```bash
+node dist/cli.js init --all --project    # 或 --claude / --codex
+node dist/cli.js remove --all --project  # 安全卸载
+```
+
+> 注：marketplace 安装与项目级 init 二选一，双装会双重注入。
 
 ## 快速开始
 
@@ -45,11 +52,19 @@ codex plugin install flowneo@flowneo-marketplace
 
 ## 配置
 
-`.flow-neo/config/plugin.config.json`（阶段三实现）：流程开关、提醒级别、归档策略。
+`.flow-neo/config/plugin.config.json`（`flowneo init` 自动生成）五组字段：
+
+| 字段 | 默认值 | 状态 |
+|---|---|---|
+| `reminders.perTurn` | `true` | 已生效——每轮轻提醒开关 |
+| `archive.strategy` | `"prompt"` | 预留（v0.3.0 暂未生效） |
+| `lint.routerLimit` | `1500` | 已生效——`flowneo lint` 实读 Router token 上限 |
+| `schema.strictness` | `"loose"` | 已生效——PostToolUse 校验警告分级（strict 话术升级） |
+| `stages.skipDesign` / `skipReview` | `false` | 已生效——Router/技能话术感知跳阶段（默认保五阶段纪律） |
 
 ## 文档
 
-- [技术方案 v2.2](./docs/FlowNeo%20%E8%B7%A8%E5%B9%B3%E5%8F%B0AI%E7%BC%96%E7%A0%81%E6%8F%92%E4%BB%B6%E5%AE%8C%E6%95%B4%E6%8A%80%E6%9C%AF%E6%96%B9%E6%A1%88%EF%BC%88Claude%20Code%20_%20Codex%20%E9%80%9A%E7%94%A8%E3%80%81Superpowers%E7%B2%BE%E7%AE%80%E5%A2%9E%E5%BC%BA%E7%89%88%EF%BC%89.md)
+- [技术方案 v2.3](./docs/FlowNeo%20%E8%B7%A8%E5%B9%B3%E5%8F%B0AI%E7%BC%96%E7%A0%81%E6%8F%92%E4%BB%B6%E5%AE%8C%E6%95%B4%E6%8A%80%E6%9C%AF%E6%96%B9%E6%A1%88%EF%BC%88Claude%20Code%20_%20Codex%20%E9%80%9A%E7%94%A8%E3%80%81Superpowers%E7%B2%BE%E7%AE%80%E5%A2%9E%E5%BC%BA%E7%89%88%EF%BC%89.md)
 - [测试方法](./docs/testing.md)
 - [移植到新平台 checklist](./docs/porting-to-a-new-harness.md)
 - [发布说明](./RELEASE-NOTES.md)

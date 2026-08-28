@@ -34,6 +34,11 @@ describe('lintAll', () => {
     const errors = lintAll(dir)
     expect(errors.some((e) => e.includes('2000') && e.includes('1500'))).toBe(true)
   })
+  it('自定义 routerLimit（lint.routerLimit 接线）放宽后同一 router 通过', () => {
+    put('_router/router.md', '一'.repeat(2000))
+    expect(lintAll(dir, undefined, 3000)).toEqual([])
+    expect(lintAll(dir, undefined, 1000).some((e) => e.includes('1000'))).toBe(true)
+  })
   it('合规 router + 技能全部通过', () => {
     put('_router/router.md', '# Router')
     put('01-demo/SKILL.md', GOOD_SKILL)
