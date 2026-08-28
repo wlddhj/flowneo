@@ -28,9 +28,15 @@ description: FlowNeo 阶段二·结构化四阶方案设计。当本任务 statu
 
 1. 读取本任务 01-need-explore.md（若为轻量简化启动则直接读用户需求）
 2. 依次完成四阶设计（模板四段固定，不可缺省；不适用的字段标注「不适用」）
-3. 写入 .flow-neo/tasks/<本任务slug>/02-design-plan.md
-4. 更新 status.md：stage: 3，artifacts 追加 02-design-plan.md
-5. 用 Skill 工具调用 flowneo-task-execute 进入阶段三
+3. **四阶自我评审**（落盘前逐项核对，发现不一致先修正）：
+   - 验收标准每条可测，且与 01 的边界/验收一致（无越界、无遗漏）
+   - 功能设计覆盖验收标准全部条目；分支与异常路径闭环
+   - 架构/数据设计支撑功能设计（模块/表/接口与业务流程对得上）
+   - 任务拆解覆盖功能设计全部模块（无表外功能）；依赖无环；每项最小可执行
+4. **不确定项确认**：存在多方案分叉、技术选型不定、或影响需求边界的假设时，落盘前**一次性**列出全部疑问向用户确认（禁止拆成多轮）；无法确认的给出推荐方案并显式标注【假设】及影响范围
+5. 写入 .flow-neo/tasks/<本任务slug>/02-design-plan.md
+6. 更新 status.md：stage: 3，artifacts 追加 02-design-plan.md
+7. 用 Skill 工具调用 flowneo-task-execute 进入阶段三
 
 ## 02-design-plan.md 模板（四阶固定）
 
@@ -66,4 +72,6 @@ description: FlowNeo 阶段二·结构化四阶方案设计。当本任务 statu
 
 ## 完成条件
 
-四段齐全；任务均为最小可执行粒度；status.md 已更新至 stage: 3。
+- [ ] 四段齐全且自我评审四项全部通过
+- [ ] 不确定项已经用户确认，或已标注【假设】及影响范围
+- [ ] 任务均为最小可执行粒度；status.md 已更新至 stage: 3
