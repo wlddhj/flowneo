@@ -17,6 +17,13 @@ const FLOWNEO_SKILL_DIRS = [
 /** FlowNeo hooks 事件清单（settings.json 注销时遍历） */
 const FLOWNEO_HOOK_EVENTS = ['SessionStart', 'UserPromptSubmit', 'PostToolUse'] as const
 
+/** FlowNeo 三事件的 hook 命令模板（数组级合并/幂等判重依据） */
+const FLOWNEO_HOOK_CMDS: Record<string, string> = {
+  SessionStart: 'node .claude/flowneo/hooks/session-start.js',
+  UserPromptSubmit: 'node .claude/flowneo/hooks/user-prompt-submit.js',
+  PostToolUse: 'node .claude/flowneo/hooks/post-tool-use.js',
+}
+
 export interface InitOpts {
   target: 'claude' | 'codex' | 'all'
   scope: 'project' | 'user'
@@ -33,7 +40,7 @@ export function copyHooks(cwd: string, pluginRoot: string): void {
   cpSync(join(pluginRoot, 'dist/hooks'), join(cwd, '.claude/flowneo/hooks'), { recursive: true })
 }
 
-/** 合并 FlowNeo hooks 到 .claude/settings.json（保留用户既有 hooks，FlowNeo 项幂等替换） */
+/** 合并 FlowNeo hooks 到 .claude/settings.json（数组级过滤合并：保留用户同事件 hooks，FlowNeo 项幂等替换不叠加） */
 export function mergeHooksSettings(cwd: string): void {
   const file = join(cwd, '.claude/settings.json')
   let settings: Record<string, unknown> = {}
@@ -44,13 +51,14 @@ export function mergeHooksSettings(cwd: string): void {
       settings = {}
     }
   }
-  const flowneoHooks = {
-    SessionStart: [{ hooks: [{ type: 'command', command: 'node .claude/flowneo/hooks/session-start.js', async: false }] }],
-    UserPromptSubmit: [{ hooks: [{ type: 'command', command: 'node .claude/flowneo/hooks/user-prompt-submit.js', async: false }] }],
-    PostToolUse: [{ hooks: [{ type: 'command', command: 'node .claude/flowneo/hooks/post-tool-use.js', async: false }] }],
+  const hooks = (settings.hooks ?? {}) as Record<string, unknown[]>
+  for (const ev of FLOWNEO_HOOK_EVENTS) {
+    const entries = Array.isArray(hooks[ev]) ? hooks[ev] : []
+    // 幂等判重：剔除既有 FlowNeo 项后追加单项，重复 init 不叠加、用户同事件项保留
+    const kept = entries.filter((e) => !JSON.stringify(e).includes('.claude/flowneo/hooks/'))
+    hooks[ev] = [...kept, { hooks: [{ type: 'command', command: FLOWNEO_HOOK_CMDS[ev], async: false }] }]
   }
-  const existing = (settings.hooks ?? {}) as Record<string, unknown>
-  settings.hooks = { ...existing, ...flowneoHooks }
+  settings.hooks = hooks
   mkdirSync(join(file, '..'), { recursive: true })
   writeFileSync(file, JSON.stringify(settings, null, 2) + '\n')
 }
@@ -62,7 +70,8 @@ export function updateAgentsMd(cwd: string, pluginRoot: string): void {
   let current = ''
   if (existsSync(file)) current = readFileSync(file, 'utf8')
   if (current.includes(MARK_BEGIN) && current.includes(MARK_END)) {
-    const re = new RegExp(`${MARK_BEGIN}[\\s\\S]*?${MARK_END}`)
+    // g flag：标记段多次出现时全替换（与 removeAgentsSection 对称）
+    const re = new RegExp(`${MARK_BEGIN}[\\s\\S]*?${MARK_END}`, 'g')
     current = current.replace(re, section)
     // 替换分支保留文件自身尾部换行，避免反复 init 时尾部空行逐次增长
     writeFileSync(file, current.endsWith('\n') ? current : `${current}\n`)

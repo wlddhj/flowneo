@@ -95,6 +95,22 @@ describe('mergeHooksSettings', () => {
     expect(settings.hooks.SessionStart).toHaveLength(1)
     expect(settings.hooks.PostToolUse).toHaveLength(1)
   })
+  it('用户同事件 hook 保留（数组级合并，不整组替换）', () => {
+    mkdirSync(join(cwd, '.claude'), { recursive: true })
+    writeFileSync(join(cwd, '.claude/settings.json'), JSON.stringify({
+      hooks: { SessionStart: [{ hooks: [{ type: 'command', command: 'echo user-hook' }] }] },
+    }))
+    mergeHooksSettings(cwd)
+    let settings = JSON.parse(readFileSync(join(cwd, '.claude/settings.json'), 'utf8'))
+    expect(settings.hooks.SessionStart).toHaveLength(2)
+    const cmds = settings.hooks.SessionStart.map((e: { hooks: { command: string }[] }) => e.hooks[0].command)
+    expect(cmds).toContain('echo user-hook')
+    expect(cmds).toContain('node .claude/flowneo/hooks/session-start.js')
+    // 重复 init：用户项与 FlowNeo 项均不叠加
+    mergeHooksSettings(cwd)
+    settings = JSON.parse(readFileSync(join(cwd, '.claude/settings.json'), 'utf8'))
+    expect(settings.hooks.SessionStart).toHaveLength(2)
+  })
   it('settings.json 损坏时按空对象重建', () => {
     mkdirSync(join(cwd, '.claude'), { recursive: true })
     writeFileSync(join(cwd, '.claude/settings.json'), 'not json')

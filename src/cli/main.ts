@@ -26,7 +26,9 @@ if (command === 'lint') {
     console.log('提示：user 级安装将在后续版本支持，本次按 project 级执行')
   }
   const done = command === 'init' ? init(opts, process.cwd(), pluginRoot) : remove(opts, process.cwd())
-  console.log(`flowneo ${command} 完成（target=${opts.target}，scope=${opts.scope}）：`)
+  // 输出实际生效的 scope：--user 目前按 project 执行，不能误报 scope=user
+  const effectiveScope = opts.scope === 'user' ? 'project（--user 按实际生效值输出）' : opts.scope
+  console.log(`flowneo ${command} 完成（target=${opts.target}，scope=${effectiveScope}）：`)
   for (const d of done) console.log(` - ${d}`)
 } else {
   console.error('用法：flowneo <lint | init | remove> [--claude|--codex|--all] [--project|--user]')

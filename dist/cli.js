@@ -64,6 +64,11 @@ var FLOWNEO_SKILL_DIRS = [
   "05-git-archive"
 ];
 var FLOWNEO_HOOK_EVENTS = ["SessionStart", "UserPromptSubmit", "PostToolUse"];
+var FLOWNEO_HOOK_CMDS = {
+  SessionStart: "node .claude/flowneo/hooks/session-start.js",
+  UserPromptSubmit: "node .claude/flowneo/hooks/user-prompt-submit.js",
+  PostToolUse: "node .claude/flowneo/hooks/post-tool-use.js"
+};
 function copySkills(cwd, pluginRoot2, target) {
   const dest = target === "claude" ? join2(cwd, ".claude/skills") : join2(cwd, ".codex/skills");
   cpSync(join2(pluginRoot2, "skills"), dest, { recursive: true });
@@ -81,13 +86,13 @@ function mergeHooksSettings(cwd) {
       settings = {};
     }
   }
-  const flowneoHooks = {
-    SessionStart: [{ hooks: [{ type: "command", command: "node .claude/flowneo/hooks/session-start.js", async: false }] }],
-    UserPromptSubmit: [{ hooks: [{ type: "command", command: "node .claude/flowneo/hooks/user-prompt-submit.js", async: false }] }],
-    PostToolUse: [{ hooks: [{ type: "command", command: "node .claude/flowneo/hooks/post-tool-use.js", async: false }] }]
-  };
-  const existing = settings.hooks ?? {};
-  settings.hooks = { ...existing, ...flowneoHooks };
+  const hooks = settings.hooks ?? {};
+  for (const ev of FLOWNEO_HOOK_EVENTS) {
+    const entries = Array.isArray(hooks[ev]) ? hooks[ev] : [];
+    const kept = entries.filter((e) => !JSON.stringify(e).includes(".claude/flowneo/hooks/"));
+    hooks[ev] = [...kept, { hooks: [{ type: "command", command: FLOWNEO_HOOK_CMDS[ev], async: false }] }];
+  }
+  settings.hooks = hooks;
   mkdirSync(join2(file, ".."), { recursive: true });
   writeFileSync(file, JSON.stringify(settings, null, 2) + "\n");
 }
@@ -97,7 +102,7 @@ function updateAgentsMd(cwd, pluginRoot2) {
   let current = "";
   if (existsSync2(file)) current = readFileSync2(file, "utf8");
   if (current.includes(MARK_BEGIN) && current.includes(MARK_END)) {
-    const re = new RegExp(`${MARK_BEGIN}[\\s\\S]*?${MARK_END}`);
+    const re = new RegExp(`${MARK_BEGIN}[\\s\\S]*?${MARK_END}`, "g");
     current = current.replace(re, section);
     writeFileSync(file, current.endsWith("\n") ? current : `${current}
 `);
@@ -208,7 +213,8 @@ if (command === "lint") {
     console.log("\u63D0\u793A\uFF1Auser \u7EA7\u5B89\u88C5\u5C06\u5728\u540E\u7EED\u7248\u672C\u652F\u6301\uFF0C\u672C\u6B21\u6309 project \u7EA7\u6267\u884C");
   }
   const done = command === "init" ? init(opts, process.cwd(), pluginRoot) : remove(opts, process.cwd());
-  console.log(`flowneo ${command} \u5B8C\u6210\uFF08target=${opts.target}\uFF0Cscope=${opts.scope}\uFF09\uFF1A`);
+  const effectiveScope = opts.scope === "user" ? "project\uFF08--user \u6309\u5B9E\u9645\u751F\u6548\u503C\u8F93\u51FA\uFF09" : opts.scope;
+  console.log(`flowneo ${command} \u5B8C\u6210\uFF08target=${opts.target}\uFF0Cscope=${effectiveScope}\uFF09\uFF1A`);
   for (const d of done) console.log(` - ${d}`);
 } else {
   console.error("\u7528\u6CD5\uFF1Aflowneo <lint | init | remove> [--claude|--codex|--all] [--project|--user]");
