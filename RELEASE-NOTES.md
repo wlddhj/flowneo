@@ -13,7 +13,7 @@
 - 用户确认门：不确定项一次性确认，避免方案带着未决项进入编码
 
 **后续项（不属于本版）**
-- GitHub 仓库创建与双端 marketplace 发布、CI、`npm publish` 实际执行
+- GitHub 仓库创建与双端 marketplace 发布、CI、`npm publish` 实际执行（注意：默认 registry 若为 npmmirror 等镜像，发布须显式指定官方源 `npm login --registry https://registry.npmjs.org/` + `npm publish --registry https://registry.npmjs.org/`）
 
 ## v0.3.0（2026-08-28）— 双端分发与可配置化
 
