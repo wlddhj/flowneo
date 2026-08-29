@@ -1,5 +1,20 @@
 # Release Notes
 
+## v0.4.0（2026-08-28）— npm 正式发包 + 设计技能增强
+
+**npm 发包**
+- npm 包 `flowneo` 正式可装：`npx flowneo init / lint / remove` 项目级安装与安全卸载
+- `files` 白名单——只发布运行所需（dist / skills / hooks / config / 双端清单 / AGENTS），排除 src / tests / docs / scripts
+- `prepublishOnly` 复用 `verify`——publish 前强制重建 dist + git diff 卡点，防源码与产物漂移
+- `repository` / `homepage` / `license` / `keywords` 元信息补全（GitHub 地址为占位，建仓后回填）
+
+**设计质量增强（02 技能）**
+- 自我评审环节：四阶交叉自检清单
+- 用户确认门：不确定项一次性确认，避免方案带着未决项进入编码
+
+**后续项（不属于本版）**
+- GitHub 仓库创建与双端 marketplace 发布、CI、`npm publish` 实际执行（注意：默认 registry 若为 npmmirror 等镜像，发布须显式指定官方源 `npm login --registry https://registry.npmjs.org/` + `npm publish --registry https://registry.npmjs.org/`）
+
 ## v0.3.0（2026-08-28）— 双端分发与可配置化
 
 **Codex 端**

@@ -4,26 +4,26 @@
 
 ## 安装
 
-Claude Code（marketplace 一键）：
+npm 方式（推荐，已可用）：
+
+```bash
+npx flowneo init --all --project    # 或 --claude / --codex 单端安装
+npx flowneo remove --all --project  # 安全卸载
+```
+
+Claude Code marketplace（待 GitHub 仓库公开后可用）：
 
 ```bash
 claude plugin marketplace add <owner>/flowneo
 claude plugin install flowneo@flowneo-marketplace
 ```
 
-Codex：
+Codex（待 GitHub 仓库公开后可用）：
 
 ```bash
 codex plugin marketplace add <owner>/flowneo
 codex plugin install flowneo@flowneo-marketplace
 # 本地目录安装（已真机验证）：codex plugin add <本仓库路径>
-```
-
-项目级安装（本仓库构建后）：
-
-```bash
-node dist/cli.js init --all --project    # 或 --claude / --codex
-node dist/cli.js remove --all --project  # 安全卸载
 ```
 
 > 注：marketplace 安装与项目级 init 二选一，双装会双重注入。

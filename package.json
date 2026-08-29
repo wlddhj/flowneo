@@ -1,18 +1,28 @@
 {
   "name": "flowneo",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "FlowNeo — 轻量跨平台 AI 编码工程工作流插件（Claude Code / Codex）",
   "type": "module",
   "bin": {
     "flowneo": "./dist/cli.js"
   },
+  "files": [
+    "dist/",
+    "skills/",
+    "hooks/",
+    "config/",
+    ".claude-plugin/",
+    ".codex-plugin/",
+    "AGENTS-flowneo.md"
+  ],
   "scripts": {
     "build": "node esbuild.mjs",
     "test": "vitest run --passWithNoTests",
     "typecheck": "tsc --noEmit",
     "lint": "npm run build && node dist/cli.js lint",
     "verify": "node esbuild.mjs && git diff HEAD --exit-code dist/",
-    "bump-version": "node scripts/bump-version.mjs"
+    "bump-version": "node scripts/bump-version.mjs",
+    "prepublishOnly": "npm run verify"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
@@ -22,5 +32,20 @@
   },
   "engines": {
     "node": ">=18"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/huangjian/flowneo.git"
+  },
+  "homepage": "https://github.com/huangjian/flowneo",
+  "license": "MIT",
+  "keywords": [
+    "claude-code",
+    "codex",
+    "workflow",
+    "skills",
+    "plugin",
+    "engineering",
+    "multi-task"
+  ]
 }
