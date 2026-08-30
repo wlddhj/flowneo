@@ -1,6 +1,6 @@
 ---
 name: flowneo-design-plan
-description: FlowNeo 阶段二·结构化四阶方案设计。当本任务 status.md 的 stage 为 2 时使用。产出唯一设计文档 .flow-neo/tasks/<本任务slug>/02-design-plan.md，固定四阶：需求规格、功能设计、架构/数据设计、任务拆解，作为编码与审查的唯一依据。
+description: FlowNeo 阶段二·结构化四阶方案设计。当本任务 status.md 的 stage 为 2 时使用。产出唯一设计文档 .flow-neo/tasks/<本任务slug>/02-design-plan.md，固定四阶（第三阶按设计档位：架构/数据设计 或 技术要点）：需求规格、功能设计、第三阶、任务拆解，作为编码与审查的唯一依据。
 ---
 
 # 阶段二：结构化四阶方案设计
