@@ -20,9 +20,10 @@ NO REQUIREMENT LEFT AMBIGUOUS — CLARIFY OR MARK ASSUMPTION BEFORE PROCEEDING
 2. 拆解用户原始需求，提炼核心开发目标
 3. 逐项明确：需求边界与不做事项、运行环境与兼容要求、验收标准
 4. 存在模糊点时一次性列出全部疑问向用户确认（禁止拆成多轮）；无法确认的给出假设并显式标注
-5. 按下方模板写入 `.flow-neo/tasks/<slug>/01-need-explore.md`
-6. 更新本任务 status.md：stage: 2，artifacts 追加 01-need-explore.md
-7. 用 Skill 工具调用 flowneo-design-plan 进入阶段二
+5. **设计档位判定**：按判定信号选档——涉及数据表/对外接口/跨模块依赖 → `全量`；纯逻辑/算法/UI 交互/重构/脚本 → `精简`；判定理由一句话。用户显式指定档位时以用户为准并注明「用户指定」
+6. 按下方模板写入 `.flow-neo/tasks/<slug>/01-need-explore.md`
+7. 更新本任务 status.md：stage: 2，artifacts 追加 01-need-explore.md
+8. 用 Skill 工具调用 flowneo-design-plan 进入阶段二
 
 ## 01-need-explore.md 模板
 
@@ -43,6 +44,10 @@ NO REQUIREMENT LEFT AMBIGUOUS — CLARIFY OR MARK ASSUMPTION BEFORE PROCEEDING
 
 ## 验收标准
 - <可验证条目>
+
+## 设计档位
+- 档位：<全量 | 精简>
+- 理由：<判定信号一句话；用户指定时注明>
 
 ## 待确认问题与结论
 - Q：<问题> → A：<结论 或 【假设】>
