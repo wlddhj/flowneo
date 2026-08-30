@@ -25,9 +25,16 @@ export const ARTIFACT_SCHEMAS: Record<string, string[]> = {
   ],
 }
 
+/** 精简档标注识别：全/半角冒号、冒号后零或多个空白 */
+const TIER_LITE = /档位[：:]\s*精简/
+
 /** 校验工件章节完整性，返回缺失章节警告；非清单内文件返回空（不校验） */
 export function validateArtifact(fileName: string, content: string): string[] {
   const required = ARTIFACT_SCHEMAS[fileName]
   if (!required) return []
-  return required.filter((h) => !content.includes(h)).map((h) => `缺失章节：${h}`)
+  const list =
+    fileName === '02-design-plan.md' && TIER_LITE.test(content)
+      ? required.map((h) => (h === '## 三、架构/数据设计' ? '## 三、技术要点' : h))
+      : required
+  return list.filter((h) => !content.includes(h)).map((h) => `缺失章节：${h}`)
 }
