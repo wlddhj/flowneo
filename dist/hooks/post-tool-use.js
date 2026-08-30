@@ -28,10 +28,12 @@ var ARTIFACT_SCHEMAS = {
     "## \u5DE5\u4EF6\u7D22\u5F15"
   ]
 };
+var TIER_LITE = /档位[：:]\s*精简/;
 function validateArtifact(fileName2, content) {
   const required = ARTIFACT_SCHEMAS[fileName2];
   if (!required) return [];
-  return required.filter((h) => !content.includes(h)).map((h) => `\u7F3A\u5931\u7AE0\u8282\uFF1A${h}`);
+  const list = fileName2 === "02-design-plan.md" && TIER_LITE.test(content) ? required.map((h) => h === "## \u4E09\u3001\u67B6\u6784/\u6570\u636E\u8BBE\u8BA1" ? "## \u4E09\u3001\u6280\u672F\u8981\u70B9" : h) : required;
+  return list.filter((h) => !content.includes(h)).map((h) => `\u7F3A\u5931\u7AE0\u8282\uFF1A${h}`);
 }
 
 // src/lib/config.ts

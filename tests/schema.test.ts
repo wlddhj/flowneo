@@ -29,6 +29,19 @@ const FULL_02 = [
   '任务。',
 ].join('\n')
 
+const LITE_02 = [
+  '# 方案设计',
+  '档位：精简',
+  '## 一、需求规格',
+  '规格。',
+  '## 二、功能设计',
+  '功能。',
+  '## 三、技术要点',
+  '- 关键技术决策：xxx',
+  '## 四、任务拆解',
+  '任务。',
+].join('\n')
+
 describe('ARTIFACT_SCHEMAS', () => {
   it('覆盖 01~05 五个工件', () => {
     expect(Object.keys(ARTIFACT_SCHEMAS)).toEqual([
@@ -74,5 +87,28 @@ describe('validateArtifact', () => {
 
   it('status.md → 不校验（不在 schema 清单）', () => {
     expect(validateArtifact('status.md', '# 状态')).toEqual([])
+  })
+
+  it('02 精简档标注 + 技术要点齐全 → 无警告', () => {
+    expect(validateArtifact('02-design-plan.md', LITE_02)).toEqual([])
+  })
+
+  it('02 精简档缺「## 三、技术要点」（误用全量第三阶）→ 报缺失', () => {
+    const warnings = validateArtifact('02-design-plan.md', FULL_02 + '\n档位：精简')
+    expect(warnings).toEqual(['缺失章节：## 三、技术要点'])
+  })
+
+  it('02 半角冒号「档位:精简」→ 识别为精简档', () => {
+    const content = LITE_02.replace('档位：精简', '档位:精简')
+    expect(validateArtifact('02-design-plan.md', content)).toEqual([])
+  })
+
+  it('02 全角冒号后带空格「档位： 精简」→ 识别为精简档', () => {
+    const content = LITE_02.replace('档位：精简', '档位： 精简')
+    expect(validateArtifact('02-design-plan.md', content)).toEqual([])
+  })
+
+  it('02 标注「档位：全量」→ 用全量清单', () => {
+    expect(validateArtifact('02-design-plan.md', FULL_02 + '\n档位：全量')).toEqual([])
   })
 })
