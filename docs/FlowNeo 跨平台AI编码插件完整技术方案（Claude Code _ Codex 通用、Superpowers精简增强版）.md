@@ -1,11 +1,6 @@
 # FlowNeo 跨平台AI编码插件技术方案 v2.3（Claude Code / Codex 通用、Superpowers 精简增强版）
 
-> **修订记录**
-> - v2.3（2026-08-28）：v0.3.0——Codex 端清单与标记段落地；CLI init/remove 项目级双端安装；配置系统五组开关（含跳阶段）；PostToolUse 章节校验（仅警告）。
-> - v2.2（2026-08-27）：多任务并行支持——`.flow-neo/tasks/<slug>/` 取代 `current/` 单活跃区；新增会话级绑定 `sessions/<session-id>.md`（CC 机制级多会话隔离）；轻任务零文件化；status.md 去 mode 增 slug；Router/技能话术全链路切换。
-> - v2.1（2026-08-27）：①适配层与工具链确定采用 **TypeScript**（esbuild 零依赖单文件产物，运行时仅依赖 Node ≥18）；②修正 Codex 端为**官方插件体系**（`.codex-plugin/plugin.json` + `codex plugin marketplace`，v2.0「无插件市场」表述过时），但 Codex 无 hooks 能力的结论不变；③新增双端**一键安装命令**与 `npx flowneo` 兜底入口；④仓库结构按「Markdown 技能内核 + TypeScript 适配层」重组。
-> - v2.0（2026-08-27）：依据可行性评估全面修订。①修正双平台目录与机制为 2026 官方标准（SKILL.md 目录式结构、AGENTS.md 常驻、真实 hooks 体系）；②新增「常驻调度核心 Router + 持续注入」机制，对抗长会话流程漂移；③自动化承诺降级为可实现话术（机制级 / 引导级分级标注）；④Token 效果由百分比宣称改为可测量验收标准；⑤迭代路径调整为「Claude Code 单端先行 → Codex 平移」；⑥全文去重收敛。
-> - v1.0（2026-08-27）：初稿。
+> **修订记录**：v2.3（2026-08-28）——v0.3.0 Codex 端清单与标记段、CLI init/remove、配置系统五组开关、PostToolUse 章节校验。历史版本见 git log。
 
 ## 一、项目定位（最终定稿）
 
@@ -304,32 +299,9 @@ npx flowneo remove                  # 安全卸载（AGENTS.md 标记段清理�
 - **平台逻辑隔离**：内核（skills + Router + 工件规范）统一，适配层独立迭代，单端更新不影响另一端
 - **降级策略**：无 Node 环境下双端 skills 仍可被识别使用（引导级能力全保留），仅 CC hooks 注入与 npx CLI 不可用，不阻断开发
 
-## 九、迭代开发计划（调整为「单端先行 → 平移」）
+## 九、风险与异常兜底
 
-### 阶段一：Claude Code 单端 MVP（1~2 天）
-
-- TS 工程搭建：esbuild 构建配置、零依赖单文件产物（dist/）、`node dist/hooks/*.js` 直调验证
-- 编写 5 个阶段技能 + Router + status.md 规范
-- 实现 session-start / user-prompt-submit 两个 hook（TS）+ `.claude-plugin` 清单与 `hooks/hooks.json`
-- `.flow-neo` 工件体系与生命周期跑通；轻重分流与手动强制可用
-- **验收**：`claude plugin marketplace add <本地目录>` 本地安装生效；示例任务走通五阶段全工件；中断会话重启后凭 status.md 恢复（机制级）；`/context` 实测常驻 ≤ 2K
-
-### 阶段二：Codex 平移（0.5~1 天）
-
-- `.codex-plugin/plugin.json` 清单 + `codex plugin marketplace` 本地目录安装验证
-- `npx flowneo init / remove` CLI（TS）：项目级 skills 复制 + AGENTS.md 标记段安全增删
-- 同一任务集在 Codex 端全流程走查
-- 产出双端能力差异清单（hooks 相关增强项在 Codex 端降级为引导级）
-
-### 阶段三：完善版（2~3 天）
-
-- npm 发包（`npx flowneo` 正式入口）+ GitHub 仓库双端 marketplace 发布
-- 配置开关（提醒级别、流程启停、归档策略）
-- 工件 Schema 校验（CC 端 PostToolUse + TS/zod 校验，可选安装）
-- Token 账本实测：同任务集 vs Superpowers A/B 报告
-- 异常兜底纪律打磨、`flowneo lint` Router 体积把关（≤1.5K tokens）
-
-## 十、风险与对策
+### 1. 风险与对策
 
 - **AGENTS.md 与用户自有内容冲突** → 标记段隔离 + 脚本化安全增删，卸载零残留
 - **Router 体积膨胀** → ≤1.5K 硬预算 + lint 脚本卡点
@@ -341,26 +313,24 @@ npx flowneo remove                  # 安全卸载（AGENTS.md 标记段清理�
 - **Node 运行时依赖** → 无 Node 环境自动降级为纯技能模式（Router 注入与 CLI 不可用，引导级能力全保留），安装器检测并明确提示
 - **dist 产物与源码漂移** → 构建产物提交仓库（marketplace 不跑 npm install），提交前强制 `npm run build`，CI 校验 dist 为最新编译结果
 
-## 十一、全流程异常兜底与降级（话术按能力分级修正）
-
-### 1. 阶段执行异常
+### 2. 阶段执行异常
 
 - **会话中断恢复**：CC——SessionStart hook 读取 status.md 注入断点（机制级）；Codex——Router 内置启动读取纪律（引导级）。恢复后从断点阶段续作，不重复全流程
 - **技能加载异常**：Router 内置兜底——技能不可用时降级为「极简工作流」（核心开发+自查），保业务交付不阻断（引导级）
 
-### 2. 文件与输出物异常
+### 3. 文件与输出物异常
 
 - **文档生成失败/权限不足**：先会话内完整留存内容，提示手动落盘，避免成果丢失
 - **内容错乱/四阶缺层**：按标准模板重写覆盖；重名冲突时旧文件重命名备份再生成
 - **工件路径异常**：以 status.md 记录的实际路径为准，迁移前先校验
 
-### 3. 分级重试与流程降级
+### 4. 分级重试与流程降级
 
 - **轻量异常（自动重试 1 次）**：格式错乱、局部缺失——重试成功继续，失败进兜底
 - **中度异常（人工确认）**：阶段校验不通过、任务拆解失效——暂停并输出原因与修复建议，确认后重试
-- **重度异常（流程降级，替代原「熔断」表述）**：核心流程反复失败时放弃复杂流程，转极简编码模式，优先保障业务代码交付，异常记录留档用于优化
+- **重度异常（流程降级）**：核心流程反复失败时放弃复杂流程，转极简编码模式，优先保障业务代码交付，异常记录留档用于优化
 
-## 十二、版本迭代与兼容策略
+## 十、版本迭代与兼容策略
 
 ### 1. 语义化版本（MAJOR.MINOR.PATCH）
 
@@ -379,7 +349,7 @@ npx flowneo remove                  # 安全卸载（AGENTS.md 标记段清理�
 
 内核稳定（五阶段、四阶设计、工件标准）、适配灵活（双端适配层独立）、增量更新、最小侵入。
 
-## 十三、验收标准（新增，全部可测量）
+## 十一、验收标准（全部可测量）
 
 1. **一键安装**：双端 `plugin marketplace add` + `plugin install` 命令可用，技能被平台原生识别并列出；`npx flowneo init / remove` 项目级安装与安全卸载可用
 2. **常驻达标**：CC `/context` 与 Codex 上下文统计实测，FlowNeo 常驻注入 ≤ 2K tokens
@@ -388,14 +358,3 @@ npx flowneo remove                  # 安全卸载（AGENTS.md 标记段清理�
 5. **工件正确性**：轻任务零工件仅代码；重任务五工件齐全落 `tasks/<slug>/`，归档后 history 快照正确、任务目录清空
 6. **安全卸载**：uninstall 后 AGENTS.md 标记段移除且用户自有内容无损，hooks 注销干净
 
-## 十四、方案总结
-
-FlowNeo 为 Claude Code / OpenAI Codex 双平台通用工程化插件，完全对标并优化 Superpowers：
-
-- 以**双端官方插件体系**（`.claude-plugin` / `.codex-plugin` + marketplace 一键命令）实现安装分发，Markdown 技能内核 + TypeScript 零依赖适配层，不依赖平台不存在的机制
-- 以**精简持续注入**（Router ≤1.5K 常驻 + 每轮轻提醒）同时保住流程纪律与 Token 预算，解决「重注入高耗」与「轻约束漂移」的两难
-- 以**五阶段精简工作流 + 四阶结构化设计 + 轻重双分流**兼顾工程规范性与交付效率
-- 以**status.md 统一基座**贯通持续注入、断点续传、归档索引
-- 以**可测量验收标准**替代百分比营销，效果可验证、迭代可持续
-
-最终实现：**一套插件、双端原生、纪律不漂移、Token 可控可测、设计专业可落地、稳定可迭代。**
