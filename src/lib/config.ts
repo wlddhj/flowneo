@@ -3,7 +3,7 @@ import { join } from 'node:path'
 
 export interface Config {
   reminders: { perTurn: boolean }
-  /** archive.strategy 为预留字段，v0.3.0 暂未生效 */
+  /** archive.strategy 控制 05 归档技能的迁移行为：auto 直接迁移 / manual 仅留工件 / prompt 询问确认 */
   archive: { strategy: 'auto' | 'manual' | 'prompt' }
   lint: { routerLimit: number }
   schema: { strictness: 'strict' | 'loose' }

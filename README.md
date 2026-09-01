@@ -77,7 +77,7 @@ codex plugin install flowneo@flowneo-marketplace
 | 字段 | 默认值 | 状态 |
 |---|---|---|
 | `reminders.perTurn` | `true` | 已生效——每轮轻提醒开关 |
-| `archive.strategy` | `"prompt"` | 预留（v0.3.0 暂未生效） |
+| `archive.strategy` | `"prompt"` | 已生效——05 归档技能按策略切换（auto 直接迁移 / manual 仅留工件 / prompt 询问确认） |
 | `lint.routerLimit` | `1500` | 已生效——`flowneo lint` 实读 Router token 上限 |
 | `schema.strictness` | `"loose"` | 已生效——PostToolUse 校验警告分级（strict 话术升级） |
 | `stages.skipDesign` / `skipReview` | `false` | 已生效——Router/技能话术感知跳阶段（与设计档位正交：skipDesign 整段跳过 02；档位是 02 内部裁剪） |
