@@ -2,7 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/flowneo.svg)](https://www.npmjs.com/package/flowneo) [![GitHub](https://img.shields.io/badge/GitHub-wlddhj/flowneo-blue?logo=github)](https://github.com/wlddhj/flowneo)
 
-轻量跨平台 AI 编码工程工作流插件，原生兼容 **Claude Code** 与 **OpenAI Codex**。Superpowers 的精简平替：常驻 Router 持续注入保流程纪律，懒加载与轻重分流压低 Token 派耗，设计档位（全量/精简）按任务类型自适应，四阶结构化设计让方案落地更专业。
+轻量跨平台 AI 编码工程工作流插件，原生兼容 **Claude Code** 与 **OpenAI Codex**。Superpowers 的精简平替：常驻 Router 持续注入保流程纪律，懒加载与轻重分流压低 Token 消耗，设计档位（全量/精简）按任务类型自适应，四阶结构化设计让方案落地更专业。
 
 ## 安装
 
@@ -48,7 +48,7 @@ codex plugin install flowneo@flowneo-marketplace
 
 1. 需求探索 → 2. 结构化四阶设计（**设计档位：全量/精简按任务类型自适应**——需求规格 / 功能设计 / 架构数据或技术要点 / 任务拆解）→ 3. 分任务编码 → 4. 代码自查 → 5. 交付归档
 
-每任务独立 `.flow-neo/tasks/<slug>/` 目录（status.md + 01 -  05 工件），会话级绑定 `.flow-neo/sessions/<session-id>.md` 支持多任务并行，交付后迁移 `.flow-neo/history/` 形成永不覆盖的版本快照。CC 端还有 PostToolUse 工件校验：写 01 - 05 工件缺章节时自动提醒（仅警告不阻断）。
+每任务独立 `.flow-neo/tasks/<slug>/` 目录（status.md + 01~05 工件），会话级绑定 `.flow-neo/sessions/<session-id>.md` 支持多任务并行，交付后迁移 `.flow-neo/history/` 形成永不覆盖的版本快照。CC 端还有 PostToolUse 工件校验：写 01~05 工件缺章节时自动提醒（仅警告不阻断）。
 
 ### 设计档位（全量 / 精简）
 
@@ -84,7 +84,7 @@ codex plugin install flowneo@flowneo-marketplace
 
 ## 文档
 
-- [技术方案 v2.3](./docs/FlowNeo%20%E8%B7%A8%E5%B9%B3%E5%8F%B0AI%E7%BC%96%E7%A0%81%E6%8F%92%E4%BB%B6%E5%AE%8C%E6%95%B4%E6%8A%80%E6%9C%AF%E6%96%B9%E6%A1%88%EF%BC%88Claude%20Code%20_%20Codex%20%E9%80%9A%E7%94%A8%E3%80%81Superpowers%E7%B2%BE%E7%AE%80%E5%A2%9E%E5%BC%BA%E7%89%88%EF%BC%89.md)
+- [技术方案 v2.4](./docs/FlowNeo%20%E8%B7%A8%E5%B9%B3%E5%8F%B0AI%E7%BC%96%E7%A0%81%E6%8F%92%E4%BB%B6%E5%AE%8C%E6%95%B4%E6%8A%80%E6%9C%AF%E6%96%B9%E6%A1%88%EF%BC%88Claude%20Code%20_%20Codex%20%E9%80%9A%E7%94%A8%E3%80%81Superpowers%E7%B2%BE%E7%AE%80%E5%A2%9E%E5%BC%BA%E7%89%88%EF%BC%89.md)
 - [测试方法](./docs/testing.md)
 - [移植到新平台 checklist](./docs/porting-to-a-new-harness.md)
 - [发布说明](./RELEASE-NOTES.md)
