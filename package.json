@@ -35,9 +35,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/huangjian/flowneo.git"
+    "url": "git+https://github.com/wlddhj/flowneo.git"
   },
-  "homepage": "https://github.com/huangjian/flowneo",
+  "homepage": "https://github.com/wlddhj/flowneo",
   "license": "MIT",
   "keywords": [
     "claude-code",

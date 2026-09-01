@@ -14,14 +14,14 @@ npx flowneo remove --all --project  # 安全卸载
 Claude Code marketplace（待 GitHub 仓库公开后可用）：
 
 ```bash
-claude plugin marketplace add <owner>/flowneo
+claude plugin marketplace add wlddhj/flowneo
 claude plugin install flowneo@flowneo-marketplace
 ```
 
 Codex（待 GitHub 仓库公开后可用）：
 
 ```bash
-codex plugin marketplace add <owner>/flowneo
+codex plugin marketplace add wlddhj/flowneo
 codex plugin install flowneo@flowneo-marketplace
 # 本地目录安装（已真机验证）：codex plugin add <本仓库路径>
 ```
