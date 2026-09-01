@@ -48,7 +48,7 @@ codex plugin install flowneo@flowneo-marketplace
 
 1. 需求探索 → 2. 结构化四阶设计（**设计档位：全量/精简按任务类型自适应**——需求规格 / 功能设计 / 架构数据或技术要点 / 任务拆解）→ 3. 分任务编码 → 4. 代码自查 → 5. 交付归档
 
-每任务独立 `.flow-neo/tasks/<slug>/` 目录（status.md + 01~05 工件），会话级绑定 `.flow-neo/sessions/<session-id>.md` 支持多任务并行，交付后迁移 `.flow-neo/history/` 形成永不覆盖的版本快照。CC 端还有 PostToolUse 工件校验：写 01~05 工件缺章节时自动提醒（仅警告不阻断）。
+每任务独立 `.flow-neo/tasks/<slug>/` 目录（status.md + 01～05 工件），会话级绑定 `.flow-neo/sessions/<session-id>.md` 支持多任务并行，交付后迁移 `.flow-neo/history/` 形成永不覆盖的版本快照。CC 端还有 PostToolUse 工件校验：写 01～05 工件缺章节时自动提醒（仅警告不阻断）。
 
 ### 设计档位（全量 / 精简）
 
