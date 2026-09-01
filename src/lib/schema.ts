@@ -25,8 +25,8 @@ export const ARTIFACT_SCHEMAS: Record<string, string[]> = {
   ],
 }
 
-/** 精简档标注识别：全/半角冒号、冒号后零或多个空白 */
-const TIER_LITE = /档位[：:]\s*精简/
+/** 精简档标注识别：独占一行的「档位：精简」（全/半角冒号、冒号后零或多个空白）；m 标志使 ^ 匹配每行行首 */
+const TIER_LITE = /^档位[：:]\s*精简/m
 
 /** 校验工件章节完整性，返回缺失章节警告；非清单内文件返回空（不校验） */
 export function validateArtifact(fileName: string, content: string): string[] {

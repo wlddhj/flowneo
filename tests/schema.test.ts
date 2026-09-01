@@ -111,4 +111,9 @@ describe('validateArtifact', () => {
   it('02 标注「档位：全量」→ 用全量清单', () => {
     expect(validateArtifact('02-design-plan.md', FULL_02 + '\n档位：全量')).toEqual([])
   })
+
+  it('02 正文内联引用「档位：精简」字样（非标注行）→ 不切档，仍按全量校验', () => {
+    const content = FULL_02 + '\n需求规格说明：01 判定档位：精简，用户指定全量。'
+    expect(validateArtifact('02-design-plan.md', content)).toEqual([])
+  })
 })

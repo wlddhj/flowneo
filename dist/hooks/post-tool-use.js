@@ -28,7 +28,7 @@ var ARTIFACT_SCHEMAS = {
     "## \u5DE5\u4EF6\u7D22\u5F15"
   ]
 };
-var TIER_LITE = /档位[：:]\s*精简/;
+var TIER_LITE = /^档位[：:]\s*精简/m;
 function validateArtifact(fileName2, content) {
   const required = ARTIFACT_SCHEMAS[fileName2];
   if (!required) return [];
