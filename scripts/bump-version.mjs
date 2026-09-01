@@ -15,6 +15,9 @@ function writeVersion(file, version) {
   const content = JSON.parse(readFileSync(path, 'utf8'))
   if (file === '.claude-plugin/marketplace.json') {
     content.plugins[0].version = version
+  } else if (file === 'package-lock.json') {
+    content.version = version
+    if (content.packages && content.packages['']) content.packages[''].version = version
   } else {
     content.version = version
   }
