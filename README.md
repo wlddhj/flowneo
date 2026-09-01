@@ -1,29 +1,31 @@
 # FlowNeo
 
-轻量跨平台 AI 编码工程工作流插件，原生兼容 **Claude Code** 与 **OpenAI Codex**。Superpowers 的精简平替：常驻 Router 持续注入保流程纪律，懒加载与轻重分流压低 Token 消耗，四阶结构化设计让方案落地更专业。
+[![npm version](https://img.shields.io/npm/v/flowneo.svg)](https://www.npmjs.com/package/flowneo) [![GitHub](https://img.shields.io/badge/GitHub-wlddhj/flowneo-blue?logo=github)](https://github.com/wlddhj/flowneo)
+
+轻量跨平台 AI 编码工程工作流插件，原生兼容 **Claude Code** 与 **OpenAI Codex**。Superpowers 的精简平替：常驻 Router 持续注入保流程纪律，懒加载与轻重分流压低 Token 派耗，设计档位（全量/精简）按任务类型自适应，四阶结构化设计让方案落地更专业。
 
 ## 安装
 
-npm 方式（推荐，已可用）：
+npm 方式（推荐）：
 
 ```bash
 npx flowneo init --all --project    # 或 --claude / --codex 单端安装
 npx flowneo remove --all --project  # 安全卸载
 ```
 
-Claude Code marketplace（待 GitHub 仓库公开后可用）：
+Claude Code marketplace：
 
 ```bash
 claude plugin marketplace add wlddhj/flowneo
 claude plugin install flowneo@flowneo-marketplace
 ```
 
-Codex（待 GitHub 仓库公开后可用）：
+Codex marketplace：
 
 ```bash
 codex plugin marketplace add wlddhj/flowneo
 codex plugin install flowneo@flowneo-marketplace
-# 本地目录安装（已真机验证）：codex plugin add <本仓库路径>
+# 或本地目录安装：codex plugin add <本仓库路径>
 ```
 
 > 注：marketplace 安装与项目级 init 二选一，双装会双重注入。
@@ -44,9 +46,16 @@ codex plugin install flowneo@flowneo-marketplace
 
 ## 五阶段工作流（重任务）
 
-1. 需求探索 → 2. 结构化四阶设计（需求规格 / 功能设计 / 架构数据 / 任务拆解）→ 3. 分任务编码 → 4. 代码自查 → 5. 交付归档
+1. 需求探索 → 2. 结构化四阶设计（**设计档位：全量/精简按任务类型自适应**——需求规格 / 功能设计 / 架构数据或技术要点 / 任务拆解）→ 3. 分任务编码 → 4. 代码自查 → 5. 交付归档
 
 每任务独立 `.flow-neo/tasks/<slug>/` 目录（status.md + 01~05 工件），会话级绑定 `.flow-neo/sessions/<session-id>.md` 支持多任务并行，交付后迁移 `.flow-neo/history/` 形成永不覆盖的版本快照。CC 端还有 PostToolUse 工件校验：写 01~05 工件缺章节时自动提醒（仅警告不阻断）。
+
+### 设计档位（全量 / 精简）
+
+01 需求探索末尾按信号判定档位（涉及数据表/对外接口/跨模块依赖 → 全量；纯逻辑/算法/UI/重构/脚本 → 精简），用户可显式覆盖；02 按档执行：
+
+- **全量档**：四阶完整（需求规格 / 功能设计 / 架构数据设计 / 任务拆解）
+- **精简档**：第三阶降为「技术要点」（关键决策 / 风险与应对 / 复杂度要点），其余三阶不变
 
 ## 与 Superpowers 的差异
 
@@ -54,7 +63,7 @@ codex plugin install flowneo@flowneo-marketplace
 |---|---|---|
 | 持续注入 | 重注入，常驻高 | 精简 Router ≤1.5K + 每轮轻提醒 |
 | 任务分流 | 一刀切全流程 | 轻重双流，轻任务零文档 |
-| 设计 | 规格与设计分离 | 四阶递进单文档 |
+| 设计 | 规格与设计分离 | 四阶递进单文档 + 全量/精简档位 |
 | 多任务 | 单活跃任务 | 多任务并行 + 会话级绑定 |
 | 工件校验 | 无 | PostToolUse 章节校验（仅 CC 端） |
 | 可配置化 | 规则臃肿难改 | 五组配置开关（含跳阶段） |
@@ -71,7 +80,7 @@ codex plugin install flowneo@flowneo-marketplace
 | `archive.strategy` | `"prompt"` | 预留（v0.3.0 暂未生效） |
 | `lint.routerLimit` | `1500` | 已生效——`flowneo lint` 实读 Router token 上限 |
 | `schema.strictness` | `"loose"` | 已生效——PostToolUse 校验警告分级（strict 话术升级） |
-| `stages.skipDesign` / `skipReview` | `false` | 已生效——Router/技能话术感知跳阶段（默认保五阶段纪律） |
+| `stages.skipDesign` / `skipReview` | `false` | 已生效——Router/技能话术感知跳阶段（与设计档位正交：skipDesign 整段跳过 02；档位是 02 内部裁剪） |
 
 ## 文档
 
