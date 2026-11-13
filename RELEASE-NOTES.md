@@ -1,5 +1,18 @@
 # Release Notes
 
+## v0.6.0（2026-11-13）— ZCode 三端支持
+
+**零结构改动接入 ZCode**
+- ZCode（智谱 AI 编码 Agent）内建 Claude Code 插件兼容层，FlowNeo 现有产物直接可装：`.claude-plugin/plugin.json` 清单识别 + `type: command` hooks 执行器 + `${CLAUDE_PLUGIN_ROOT}` 变量注入 + stdin snake_case alias + `hookSpecificOutput.additionalContext` 输出契约，全项命中
+- 不新增 `.zcode-plugin/` 目录、不改 CLI——符合「无冗余」设计理念
+- 用户实测 5 项全过：添加市场安装 / SessionStart Router 注入 / UserPromptSubmit 每轮提醒 / 五阶段技能触发（新任务→创建 .flow-neo/ 工件）/ PostToolUse 工件章节校验
+
+**文档**
+- README：三端声明（简介/平台差异表）+ ZCode 安装方法（含 session 快照注意事项）
+
+**已知平台差异**
+- ZCode 项目级 hooks 配置当前不执行（其安全策略），FlowNeo 走插件分发不受影响
+
 ## v0.5.0（2026-11-13）— 阶段二设计确认门禁
 
 **02 设计技能（确认门禁主流程）**

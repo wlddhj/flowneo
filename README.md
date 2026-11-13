@@ -2,7 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/flowneo.svg)](https://www.npmjs.com/package/flowneo) [![GitHub](https://img.shields.io/badge/GitHub-wlddhj/flowneo-blue?logo=github)](https://github.com/wlddhj/flowneo)
 
-轻量跨平台 AI 编码工程工作流插件，原生兼容 **Claude Code** 与 **OpenAI Codex**。Superpowers 的精简平替：常驻 Router 持续注入保流程纪律，懒加载与轻重分流压低 Token 消耗，设计档位（全量/精简）按任务类型自适应，四阶结构化设计让方案落地更专业。
+轻量跨平台 AI 编码工程工作流插件，原生兼容 **Claude Code**、**OpenAI Codex** 与 **ZCode**。Superpowers 的精简平替：常驻 Router 持续注入保流程纪律，懒加载与轻重分流压低 Token 消耗，设计档位（全量/精简）按任务类型自适应，四阶结构化设计让方案落地更专业。
 
 ## 安装
 
@@ -26,6 +26,13 @@ Codex marketplace：
 codex plugin marketplace add wlddhj/flowneo
 codex plugin install flowneo@flowneo-marketplace
 # 或本地目录安装：codex plugin add <本仓库路径>
+```
+
+ZCode（走 Claude Code 兼容层，v0.5.0+ 实测可用）：
+
+```text
+设置 → 插件 → 创建 → 添加插件市场 → wlddhj/flowneo → 个人分段安装 FlowNeo
+# 安装后新建 session 生效（Hook 配置按 session 快照）
 ```
 
 > 注：marketplace 安装与项目级 init 二选一，双装会双重注入。
@@ -69,7 +76,7 @@ codex plugin install flowneo@flowneo-marketplace
 | 工件校验 | 无 | PostToolUse 章节校验（仅 CC 端） |
 | 可配置化 | 规则臃肿难改 | 五组配置开关（含跳阶段） |
 | 技术栈 | bash hooks + 多平台垫片 | TypeScript 零依赖单文件 |
-| 平台 | 多平台兼容冗余 | CC + Codex 双端，无冗余 |
+| 平台 | 多平台兼容冗余 | CC + Codex + ZCode 三端（ZCode 复用 CC 兼容层，零结构冗余） |
 
 ## 配置
 
