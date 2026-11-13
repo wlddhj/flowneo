@@ -32,14 +32,14 @@
 | 阶段 | 调用技能（Skill 工具） | 产出工件（.flow-neo/tasks/<slug>/） |
 |---|---|---|
 | 1 需求探索 | flowneo-need-explore | 01-need-explore.md（步骤 1 负责建任务+绑定） |
-| 2 方案设计 | flowneo-design-plan | 02-design-plan.md |
+| 2 方案设计 | flowneo-design-plan | 02-design-plan.md → 用户确认落痕 |
 | 3 编码执行 | flowneo-task-execute | 03-task-record.md |
 | 4 代码审查 | flowneo-code-review | 04-code-review.md |
 | 5 交付归档 | flowneo-git-archive | 05-archive-summary.md → history/ |
 
 ## 流转纪律（硬约束）
 
-1. 本任务上一阶段工件未落盘，禁止进入下一阶段
+1. 本任务上一阶段工件未落盘，禁止进入下一阶段；02 落盘后须经用户确认（「## 确认记录」落痕）方可进入阶段 3（skipDesign=true 除外，03 技能负责守门校验）
 2. 每次阶段变更同步更新本任务 status.md（task/slug/stage/artifacts/updated 五字段）
 3. 编码严格依据本任务 02-design-plan.md，禁止自由发挥；设计未覆盖先补设计再编码
 4. 工件仅写入本任务目录，文件名固定禁止改名，不预建空文件
@@ -59,7 +59,7 @@
 ## 上下文纪律
 
 - 超长文件/日志/Diff 只保留结论与关键片段（各 ≤50 行），禁止整段复读工具输出
-- 会话恢复凭本会话绑定与本任务 status.md/工件断点续作，不重跑已完成阶段
+- 会话恢复凭本会话绑定与本任务 status.md/工件断点续作，不重跑已完成阶段；stage 2 且 02 已落盘无「确认记录」→ 重新输出待确认清单等待确认，不直接编码
 
 > 用户显式指令（CLAUDE.md、直接要求）优先级高于本 Router；冲突时服从用户并说明。
 <!-- FLOWNEO:END -->

@@ -9,16 +9,18 @@ description: FlowNeo 阶段三·分任务编码执行。当本任务 status.md �
 
 <HARD-GATE>
 只能实施 本任务 02-design-plan.md「四、任务拆解」表中列出的任务；表外变更必须先回写 02 再实施。
-若 config.stages.skipDesign=true 跳过了 02：按 01-need-explore.md 的核心目标编码，03 记录首行标注「设计简化：跳过 02」。
+开工守门：02-design-plan.md 必须已落痕「## 确认记录」节（用户设计确认）方可编码；缺失时禁止直接开工——先输出该设计的关键要点与待确认项向用户补确认，回写「确认记录」后继续（升级前进行中的旧任务同样以补确认方式通过，不硬阻断）。
+若 config.stages.skipDesign=true 跳过了 02：按 01-need-explore.md 的核心目标编码，03 记录首行标注「设计简化：跳过 02」（该通道豁免确认守门）。
 </HARD-GATE>
 
 ## 执行步骤
 
-1. 读取 本任务 02-design-plan.md 的「四、任务拆解」
-2. 按优先级与依赖顺序逐项执行：编码 → 自测（可运行则实际运行验证）→ 在 03-task-record.md 表格记一行
-3. 遇到设计未覆盖的情况：先回写补充 02-design-plan.md 再编码，禁止即兴偏离
-4. 全部任务完成后汇总自测结果，更新 status.md：stage: 4，artifacts 追加 03-task-record.md
-5. 用 Skill 工具调用 flowneo-code-review 进入阶段四
+1. 前置守门：校验 本任务 02-design-plan.md 的「## 确认记录」节（skipDesign 跳过 02 时豁免）；缺失则按 HARD-GATE 补确认落痕后再继续
+2. 读取 本任务 02-design-plan.md 的「四、任务拆解」
+3. 按优先级与依赖顺序逐项执行：编码 → 自测（可运行则实际运行验证）→ 在 03-task-record.md 表格记一行
+4. 遇到设计未覆盖的情况：先回写补充 02-design-plan.md 再编码，禁止即兴偏离
+5. 全部任务完成后汇总自测结果，更新 status.md：stage: 4，artifacts 追加 03-task-record.md
+6. 用 Skill 工具调用 flowneo-code-review 进入阶段四
 
 ## 03-task-record.md 模板
 
