@@ -19,7 +19,8 @@ NO REVIEW CLOSED WITHOUT ROOT CAUSE NAMED
 2. 逻辑与边界：空值、越界、并发、资源释放、异常路径
 3. 代码规范：命名、重复代码、死代码、无用依赖
 4. 性能与安全：N+1 查询、超大内存占用、注入/XSS/敏感信息硬编码
-5. 修复发现的问题并逐条记录
+5. shortcut 收割：检索本次变更中的 `flowneo-shortcut:` 注释，逐条核对已登记进 03-task-record.md——未登记的补录，限度已消除的删除注释并同步登记
+6. 修复发现的问题并逐条记录
 
 ## 具体批评 vs 泛化指责（对照）
 
@@ -46,6 +47,9 @@ NO REVIEW CLOSED WITHOUT ROOT CAUSE NAMED
 ## 设计一致性比对
 - <逐条结论>
 
+## shortcut 收割
+- <本次变更中 flowneo-shortcut 清单与登记核对结论，或「无」>
+
 ## 完成条件
 
-清单 5 项全部执行；发现的问题全部处理；status.md 更新至 stage: 5；用 Skill 工具调用 flowneo-git-archive。
+清单 6 项全部执行；发现的问题全部处理；status.md 更新至 stage: 5；用 Skill 工具调用 flowneo-git-archive。

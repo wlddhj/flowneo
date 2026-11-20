@@ -1,5 +1,17 @@
 # Release Notes
 
+## v0.6.1（2026-11-20）— 三端同步防线 + 编码守则（借鉴 ponytail 工程实践）
+
+**manifest 一致性校验（防 617ed77 类占位符漏改）**
+- `flowneo lint` 新增仓库 URI 同值校验：package.json 与两份 plugin.json 的 homepage/repository 归一化（剥 `git+`/`.git`/尾斜杠）后组内互比，漂移即 lint 红并指明文件字段
+- 防绕过：URI 字段全缺的 manifest 报错，防删字段后校验空转；JSON 损坏/文件缺失显式报错
+- CI 接入 `npm run bump-version -- --check`：5 个 manifest 版本不一致即失败（版本校验从脚本能力升级为门禁）
+
+**03/04 技能编码守则**
+- 03 新增「编码守则」节：最小实现阶梯（复用 → 标准库 → 已装依赖 → 最小新代码）、新依赖须 02 背书、懒于方案不懒于变更、不可削减清单
+- 新增 `flowneo-shortcut: <限制>, <何时升级>` 临时取舍注释规范：实现层已知限度写注释并登记 03 记录，与「设计未覆盖回写 02」显式划界
+- 04 审查清单新增第 5 项 shortcut 收割：核对变更中 flowneo-shortcut 注释与 03 记录登记闭环，报告模板增「shortcut 收割」小节
+
 ## v0.6.0（2026-11-13）— ZCode 三端支持
 
 **零结构改动接入 ZCode**

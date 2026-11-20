@@ -19,3 +19,4 @@ jobs:
       - run: npm test
       - run: npm run lint
       - run: npm run verify
+      - run: npm run bump-version -- --check

@@ -1,5 +1,5 @@
 import { fileURLToPath } from 'node:url'
-import { lintAll } from '../lib/lint.ts'
+import { lintAll, lintManifestUris } from '../lib/lint.ts'
 import { init, remove, type InitOpts } from '../lib/installer.ts'
 import { readConfig } from '../lib/config.ts'
 
@@ -16,11 +16,14 @@ function parseOpts(): InitOpts {
 
 if (command === 'lint') {
   // routerLimit 优先读当前项目 .flow-neo/config（接线 lint.routerLimit），无配置回落默认 1500
-  const errors = lintAll(
-    fileURLToPath(new URL('../skills/', import.meta.url)),
-    fileURLToPath(new URL('../AGENTS-flowneo.md', import.meta.url)),
-    readConfig(process.cwd()).lint.routerLimit,
-  )
+  const errors = [
+    ...lintAll(
+      fileURLToPath(new URL('../skills/', import.meta.url)),
+      fileURLToPath(new URL('../AGENTS-flowneo.md', import.meta.url)),
+      readConfig(process.cwd()).lint.routerLimit,
+    ),
+    ...lintManifestUris(pluginRoot),
+  ]
   if (errors.length > 0) {
     console.error('flowneo lint 失败：\n' + errors.map((e) => ` - ${e}`).join('\n'))
     process.exit(1)

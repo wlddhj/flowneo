@@ -27,6 +27,46 @@ function lintAgentsSync(agentsFile, routerFile) {
   }
   return [];
 }
+var MANIFEST_URI_FILES = ["package.json", ".claude-plugin/plugin.json", ".codex-plugin/plugin.json"];
+var URI_FIELDS = [
+  ["homepage", (m) => m.homepage],
+  ["repository", (m) => typeof m.repository === "string" ? m.repository : m.repository?.url]
+];
+function normalizeRepoUri(uri) {
+  return uri.replace(/^git\+/, "").replace(/\.git$/, "").replace(/\/+$/, "");
+}
+function lintManifestUris(root) {
+  const errors = [];
+  const baseline = /* @__PURE__ */ new Map();
+  for (const rel of MANIFEST_URI_FILES) {
+    const file = join(root, rel);
+    if (!existsSync(file)) {
+      errors.push(`manifest ${rel} \u7F3A\u5931`);
+      continue;
+    }
+    let manifest;
+    try {
+      manifest = JSON.parse(readFileSync(file, "utf8"));
+    } catch {
+      errors.push(`manifest ${rel} JSON \u89E3\u6790\u5931\u8D25`);
+      continue;
+    }
+    let hit = false;
+    for (const [field, pick] of URI_FIELDS) {
+      const raw = pick(manifest);
+      if (!raw) continue;
+      hit = true;
+      const value = normalizeRepoUri(raw);
+      const base = baseline.get(field);
+      if (base === void 0) baseline.set(field, value);
+      else if (base !== value) {
+        errors.push(`manifest URI \u6F02\u79FB\uFF1A${rel} ${field} \u671F\u671B ${base} \u5B9E\u5F97 ${value}`);
+      }
+    }
+    if (!hit) errors.push(`manifest ${rel} \u65E0\u4EFB\u4F55 URI \u5B57\u6BB5\uFF08homepage/repository \u5747\u7F3A\uFF09`);
+  }
+  return errors;
+}
 function lintAll(skillsDir, agentsFile, routerLimit = ROUTER_TOKEN_LIMIT) {
   const errors = [];
   const routerFile = join(skillsDir, "_router/router.md");
@@ -238,11 +278,14 @@ function parseOpts() {
   return { target, scope };
 }
 if (command === "lint") {
-  const errors = lintAll(
-    fileURLToPath(new URL("../skills/", import.meta.url)),
-    fileURLToPath(new URL("../AGENTS-flowneo.md", import.meta.url)),
-    readConfig(process.cwd()).lint.routerLimit
-  );
+  const errors = [
+    ...lintAll(
+      fileURLToPath(new URL("../skills/", import.meta.url)),
+      fileURLToPath(new URL("../AGENTS-flowneo.md", import.meta.url)),
+      readConfig(process.cwd()).lint.routerLimit
+    ),
+    ...lintManifestUris(pluginRoot)
+  ];
   if (errors.length > 0) {
     console.error("flowneo lint \u5931\u8D25\uFF1A\n" + errors.map((e) => ` - ${e}`).join("\n"));
     process.exit(1);

@@ -2,7 +2,7 @@ import { describe, expect, it, beforeEach } from 'vitest'
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { lintAll, lintAgentsSync } from '../src/lib/lint.ts'
+import { lintAll, lintAgentsSync, lintManifestUris } from '../src/lib/lint.ts'
 
 let dir: string
 beforeEach(() => {
@@ -78,5 +78,60 @@ describe('lintAgentsSync（AGENTS-flowneo.md 与 router.md 同步）', () => {
     )
     const errors = lintAll(dir, join(dir, 'AGENTS-flowneo.md'))
     expect(errors).toEqual(['AGENTS-flowneo.md 与 router.md 不同步（Codex 端话术漂移）'])
+  })
+})
+
+describe('lintManifestUris（manifest 仓库 URI 同值校验）', () => {
+  const REPO = 'https://github.com/wlddhj/flowneo'
+  function putManifest(rel: string, m: object) {
+    put(rel, JSON.stringify(m))
+  }
+
+  it('三文件 homepage/repository 同值通过（repository 兼容对象与字符串写法）', () => {
+    putManifest('package.json', {
+      homepage: REPO,
+      repository: { type: 'git', url: `git+${REPO}.git` },
+    })
+    putManifest('.claude-plugin/plugin.json', { homepage: REPO, repository: REPO })
+    putManifest('.codex-plugin/plugin.json', { homepage: REPO, repository: REPO })
+    expect(lintManifestUris(dir)).toEqual([])
+  })
+
+  it('repository 归一化等价（git+ 前缀 / .git 后缀 / 尾斜杠）不算漂移', () => {
+    putManifest('package.json', { repository: `git+${REPO}.git` })
+    putManifest('.claude-plugin/plugin.json', { repository: `${REPO}/` })
+    putManifest('.codex-plugin/plugin.json', { repository: REPO })
+    expect(lintManifestUris(dir)).toEqual([])
+  })
+
+  it('单文件 homepage 漂移报错并指明文件与字段', () => {
+    putManifest('package.json', { homepage: REPO, repository: REPO })
+    putManifest('.claude-plugin/plugin.json', { homepage: REPO, repository: REPO })
+    putManifest('.codex-plugin/plugin.json', { homepage: 'https://github.com/huangjian/flowno', repository: REPO })
+    const errors = lintManifestUris(dir)
+    expect(errors.length).toBe(1)
+    expect(errors[0]).toContain('.codex-plugin/plugin.json')
+    expect(errors[0]).toContain('homepage')
+    expect(errors[0]).toContain('https://github.com/huangjian/flowno')
+  })
+
+  it('某文件 homepage 与 repository 全缺报防绕过错误', () => {
+    putManifest('package.json', { homepage: REPO })
+    putManifest('.claude-plugin/plugin.json', { homepage: REPO })
+    putManifest('.codex-plugin/plugin.json', { name: 'flowneo' })
+    expect(lintManifestUris(dir).some((e) => e.includes('无任何 URI 字段'))).toBe(true)
+  })
+
+  it('manifest JSON 损坏报解析失败', () => {
+    put('package.json', '{oops')
+    putManifest('.claude-plugin/plugin.json', { homepage: REPO })
+    putManifest('.codex-plugin/plugin.json', { homepage: REPO })
+    expect(lintManifestUris(dir).some((e) => e.includes('JSON 解析失败'))).toBe(true)
+  })
+
+  it('manifest 文件缺失报错', () => {
+    putManifest('package.json', { homepage: REPO })
+    putManifest('.claude-plugin/plugin.json', { homepage: REPO })
+    expect(lintManifestUris(dir).some((e) => e.includes('缺失'))).toBe(true)
   })
 })
