@@ -58,5 +58,7 @@ export interface CellResult {
   resumeCount: number
   /** 隔离验证：会话流中检测到的注入痕迹 */
   routerSeen: boolean
+  /** 实际生效模型（stream init 事件，仅显式传 --model 时记录） */
+  model?: string
   error?: string
 }

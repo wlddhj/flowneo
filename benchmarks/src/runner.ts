@@ -53,16 +53,16 @@ export async function runCell(
   arm: Arm,
   runIdx: number,
   cellDir: string,
-  opts: RunOpts,
+  opts: RunOpts & { model?: string },
 ): Promise<CellResult> {
   mkdirSync(cellDir, { recursive: true })
   // 工作区先建在系统 tmp（仓外）：agent 看不到 benchmarks 路径，require 也不受仓库 package.json 波及；跑完移入 runs/
   const workdir = mkdtempSync(join(tmpdir(), 'bench-cell-'))
   const seedSha = prepareWorkspace(task, workdir)
-  writeFileSync(join(cellDir, 'meta.json'), JSON.stringify({ task: task.id, arm: arm.id, run: runIdx, seedSha }, null, 2))
+  writeFileSync(join(cellDir, 'meta.json'), JSON.stringify({ task: task.id, arm: arm.id, run: runIdx, seedSha, model: opts.model }, null, 2))
 
   const env = buildEnv()
-  const baseArgs = buildClaudeArgs(arm)
+  const baseArgs = buildClaudeArgs(arm, opts.model)
   const parts: StreamStats[] = []
   const streams: string[] = []
   let resumeCount = 0
@@ -124,6 +124,7 @@ function finish(
 ): CellResult {
   const stats = aggregate(parts)
   const checks = status === 'ok' ? runChecks(task, workdir) : []
+  const model = stats.model ?? undefined
   const artifacts = status === 'ok' ? countArtifacts(workdir) : 0
   let srcLoc = 0
   let testLoc = 0
@@ -153,6 +154,7 @@ function finish(
     costUsd: stats.costUsd,
     resumeCount,
     routerSeen: stats.flowneoSeen,
+    ...(model ? { model } : {}),
     ...(error ? { error } : {}),
   }
   writeFileSync(join(cellDir, 'result.json'), JSON.stringify(result, null, 2))

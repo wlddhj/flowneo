@@ -42,6 +42,12 @@ describe('parseStream', () => {
   it('非 JSON 行跳过不抛错', () => {
     expect(() => parseStream('not json\n\n{"type":"result"}')).not.toThrow()
   })
+  it('init.model 提取（--model 透传校验）与聚合', () => {
+    const s = parseStream(JSON.stringify({ type: 'system', subtype: 'init', session_id: 's1', model: 'glm-5.3-flash' }))
+    expect(s.model).toBe('glm-5.3-flash')
+    expect(aggregate([parseStream(''), s]).model).toBe('glm-5.3-flash')
+    expect(parseStream(STREAM).model).toBeNull()
+  })
 })
 
 describe('aggregate（多段续轮）', () => {

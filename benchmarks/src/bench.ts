@@ -83,19 +83,6 @@ function selftest(): void {
   console.log(`selftest 通过：${TASKS.length} 任务 / ${totalChecks} 检查点 / 隔离断言全过`)
 }
 
-function dry(taskId: string, armId: string): void {
-  const task = findTask(taskId)
-  const arm = ARMS[armId] ?? fail(`未知臂：${armId}`)
-  const dir = mkdtempSync(join(tmpdir(), 'flowneo-dry-'))
-  const seedSha = prepareWorkspace(task, dir)
-  console.log('工作区：', dir)
-  console.log('seed commit：', seedSha)
-  console.log('环境：', JSON.stringify({ CLAUDE_CODE_DISABLE_CLAUDE_MDS: '1', CLAUDE_CODE_DISABLE_AUTO_MEMORY: '1' }))
-  console.log('将执行：claude', JSON.stringify(['-p', ...buildClaudeArgs(arm), '<brief>']).slice(1, -1))
-  console.log('brief：', task.brief.slice(0, 80) + '…')
-  console.log('（dry 不调 API；工作区保留供检查）')
-}
-
 /** 遍历某 stamp 下全部格目录（task/cell 两级，均只取目录，跳过 summary.json 等文件） */
 function eachCellDir(stamp: string, cb: (taskId: string, cellDir: string) => void): void {
   const root = join(RUNS_DIR, stamp)
@@ -121,7 +108,20 @@ function loadResults(stamp: string): CellResult[] {
 async function main(): Promise<void> {
   const mode = process.argv[2]
   if (mode === '--selftest') return selftest()
-  if (mode === '--dry') return dry(arg('task', '')!, arg('arm', 'baseline')!)
+  if (mode === '--dry') {
+    const task = findTask(arg('task', '')!)
+    const arm = ARMS[arg('arm', 'baseline')!] ?? fail(`未知臂：${arg('arm', 'baseline')}`)
+    const model = arg('model')
+    const dir = mkdtempSync(join(tmpdir(), 'flowneo-dry-'))
+    const seedSha = prepareWorkspace(task, dir)
+    console.log('工作区：', dir)
+    console.log('seed commit：', seedSha)
+    if (model) console.log('--model：', model)
+    console.log('将执行：claude', JSON.stringify(['-p', ...buildClaudeArgs(arm, model), '<brief>']).slice(1, -1))
+    console.log('brief：', task.brief.slice(0, 80) + '…')
+    console.log('（dry 不调 API；工作区保留供检查）')
+    return
+  }
   if (mode === '--report') {
     const stamp = arg('stamp', '')!
     const out = writeReport(stamp, loadResults(stamp), join(RUNS_DIR, stamp), RESULTS_DIR)
@@ -144,9 +144,10 @@ async function main(): Promise<void> {
     const runs = Number(arg('runs', '3'))
     const workers = Number(arg('workers', '4'))
     const timeoutMs = Number(arg('timeout-min', '15')) * 60_000
+    const model = arg('model')
     const cells: Array<{ taskId: string; armId: string; runIdx: number }> = []
     for (const taskId of taskIds) for (const armId of armIds) for (let i = 1; i <= runs; i++) cells.push({ taskId, armId, runIdx: i })
-    console.log(`运行 ${cells.length} 格（workers=${workers}，timeout=${timeoutMs / 60000}min）→ benchmarks/runs/${stamp}/`)
+    console.log(`运行 ${cells.length} 格（workers=${workers}，timeout=${timeoutMs / 60000}min${model ? `，model=${model}` : ''}）→ benchmarks/runs/${stamp}/`)
     let done = 0
     await runPool(cells, workers, async ({ taskId, armId, runIdx }) => {
       const cellDir = join(RUNS_DIR, stamp, taskId, `${armId}-${runIdx}`)
@@ -154,7 +155,7 @@ async function main(): Promise<void> {
         done++
         return console.log(`[跳过已存在] ${taskId}/${armId}-${runIdx}`)
       }
-      const r = await runCell(findTask(taskId), ARMS[armId], runIdx, cellDir, { timeoutMs, maxResume: 3 })
+      const r = await runCell(findTask(taskId), ARMS[armId], runIdx, cellDir, { timeoutMs, maxResume: 3, model })
       done++
       const rate = r.hiddenTotal ? `${r.hiddenHits}/${r.hiddenTotal}` : '-'
       console.log(`[${done}/${cells.length}] ${taskId}/${armId}-${runIdx} ${r.status} hits=${rate} turns=${r.turns} resume=${r.resumeCount}`)

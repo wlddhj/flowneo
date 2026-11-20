@@ -27,8 +27,8 @@ export function prepareWorkspace(task: BenchTask, workdir: string): string {
   return git(['rev-parse', 'HEAD']).trim()
 }
 
-/** 构造某臂的 claude CLI 固定 flags（不含 -p、prompt 本体与 --resume，由调用方拼接） */
-export function buildClaudeArgs(arm: Arm): string[] {
+/** 构造某臂的 claude CLI 固定 flags（不含 -p、prompt 本体与 --resume，由调用方拼接）；model 显式传入时透传 --model */
+export function buildClaudeArgs(arm: Arm, model?: string): string[] {
   const args = [
     '--output-format', 'stream-json',
     '--verbose',
@@ -36,6 +36,7 @@ export function buildClaudeArgs(arm: Arm): string[] {
     '--strict-mcp-config',
     '--permission-mode', 'bypassPermissions',
   ]
+  if (model) args.push('--model', model)
   if (arm.pluginDir) args.push('--plugin-dir', arm.pluginDir)
   if (arm.appendSystem) args.push('--append-system-prompt', arm.appendSystem)
   return args

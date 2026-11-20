@@ -13,6 +13,8 @@ export interface StreamStats {
   flowneoSeen: boolean
   /** 本段调用过 AskUserQuestion（headless 下降级失败，是最强停等信号） */
   askUserCalled: boolean
+  /** 服务端确认的实际模型（init 事件，透传校验用） */
+  model: string | null
 }
 
 const EDIT_TOOLS = new Set(['Edit', 'Write', 'MultiEdit'])
@@ -29,6 +31,7 @@ export function parseStream(text: string): StreamStats {
     lastAssistantText: '',
     flowneoSeen: /flow-?neo/i.test(text),
     askUserCalled: false,
+    model: null,
   }
   for (const line of text.split('\n')) {
     if (!line.trim()) continue
@@ -40,6 +43,7 @@ export function parseStream(text: string): StreamStats {
     }
     if (ev.type === 'system' && ev.subtype === 'init' && ev.session_id) {
       stats.sessionId = ev.session_id
+      if (ev.model) stats.model = ev.model
     } else if (ev.type === 'assistant' && ev.message) {
       for (const block of ev.message.content ?? []) {
         if (block.type === 'text' && block.text) stats.lastAssistantText = block.text
@@ -73,6 +77,7 @@ export function aggregate(parts: StreamStats[]): StreamStats {
     lastAssistantText: '',
     flowneoSeen: false,
     askUserCalled: false,
+    model: null,
   }
   for (const p of parts) {
     total.sessionId = p.sessionId ?? total.sessionId
@@ -84,6 +89,7 @@ export function aggregate(parts: StreamStats[]): StreamStats {
     total.lastAssistantText = p.lastAssistantText || total.lastAssistantText
     total.flowneoSeen = total.flowneoSeen || p.flowneoSeen
     total.askUserCalled = total.askUserCalled || p.askUserCalled
+    total.model = p.model ?? total.model
     for (const [file, n] of p.editCounts) {
       total.editCounts.set(file, (total.editCounts.get(file) ?? 0) + n)
     }
