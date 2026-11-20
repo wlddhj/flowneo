@@ -1,5 +1,20 @@
 # Release Notes
 
+## v0.7.0（2026-11-20）— 基准测试框架与首轮完整基准（117 格）
+
+**benchmarks/ 框架（Node/TS，零新依赖）**
+- 三臂对照：baseline（裸 CC）/ flowneo（--plugin-dir）/ verbal（一句话排伪臂）；13 任务卡（10 重+3 轻，72 隐藏检查点全带 good/bad 参照）；`--selftest` 未过禁止真格
+- 隔离（防基线污染）：--setting-sources project,local + DISABLE_CLAUDE_MDS/AUTO_MEMORY + 仓外 tmp 工作区（中性前缀）+ 种子自动补 CJS package.json；baseline 臂以 routerSeen=false 断言
+- 停等确认驱动：检测 AskUserQuestion 工具调用或强短语 → --resume 注入「确认」续轮（上限 3，token 计入 flowneo 臂）
+- 工作区保留 + `--rescore` 离线重算（改口径不重付 API）；命令：`npm run bench -- --selftest|--dry|--run|--rescore|--report`
+
+**首轮完整基准（GLM-5.3 / CC 2.1.133，117/117 零失败）——如实呈现**
+- 漏需求率三臂持平：原始 86.6%、修正口径（剔除 6 个形态耦合检查点）94.4%，均逐字相同；一句话排伪臂无差异
+- 成本：flowneo $1.00/格 vs baseline $0.32（3.2 倍），turns 2.8 倍，时长 2.9 倍；轻任务三臂同 100% 纯开销
+- 流程遵循度不稳定（最有行动价值的发现）：重任务工件完备数 0~6 参差——分流判定与五阶段坚持存在随机性
+- 方法论教训：确定性检查点会把实现形态多样性与漏需求混同（三臂同向误伤，臂间结论不受影响）
+- 完整报告：benchmarks/results/2026-11-20-bench.md；复现：benchmarks/README.md
+
 ## v0.6.1（2026-11-20）— 三端同步防线 + 编码守则（借鉴 ponytail 工程实践）
 
 **manifest 一致性校验（防 617ed77 类占位符漏改）**

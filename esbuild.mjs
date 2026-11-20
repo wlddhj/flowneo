@@ -26,3 +26,10 @@ await build({
   outdir: 'dist',
   banner: { js: '#!/usr/bin/env node' },
 })
+
+await build({
+  ...shared,
+  entryPoints: { bench: 'benchmarks/src/bench.ts' },
+  outdir: 'dist',
+  banner: { js: '#!/usr/bin/env node' },
+})

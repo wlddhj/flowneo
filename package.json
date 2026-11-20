@@ -1,6 +1,6 @@
 {
   "name": "flowneo",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "FlowNeo — 轻量跨平台 AI 编码工程工作流插件（Claude Code / Codex）",
   "type": "module",
   "bin": {
@@ -20,6 +20,7 @@
     "test": "vitest run --passWithNoTests",
     "typecheck": "tsc --noEmit",
     "lint": "npm run build && node dist/cli.js lint",
+    "bench": "node esbuild.mjs && node dist/bench.js",
     "verify": "node esbuild.mjs && git diff HEAD --exit-code dist/",
     "bump-version": "node scripts/bump-version.mjs",
     "prepublishOnly": "npm run verify"
