@@ -1,6 +1,7 @@
 node_modules/
 .flow-neo/
 benchmarks/runs/
+.claude/
 *.log
 .DS_Store
 *.tgz
