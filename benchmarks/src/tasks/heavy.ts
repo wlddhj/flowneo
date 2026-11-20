@@ -84,9 +84,10 @@ const server = http.createServer((req, res) => {
 server.listen(3000)
 `
 
-/** 起服务 → 探测（断言失败立即定论；连接失败重试至 server 就绪）→ 杀进程 → 透传退出码。探测 exit 0=命中 1=断言失败 2=连接失败。开头清端口防残留进程污染 */
+/** 起服务 → 探测（断言失败立即定论；连接失败重试至 server 就绪）→ 杀进程 → 透传退出码。探测 exit 0=命中 1=断言失败 2=连接失败。开头清端口防残留进程污染。
+ * 解包兼容常见分页字段名（items/data/results/users），避免把实现形态多样性与漏需求混同 */
 function probeServer(port: number, query: string, probe: string): string {
-  const detect = `node -e "const h=require('http');h.get('http://127.0.0.1:${port}/users${query}',(r)=>{let b='';r.on('data',c=>b+=c);r.on('end',()=>{const j=JSON.parse(b);const a=Array.isArray(j)?j:j.items;process.exit(${probe}?0:1)})}).on('error',()=>process.exit(2))"`
+  const detect = `node -e "const h=require('http');h.get('http://127.0.0.1:${port}/users${query}',(r)=>{let b='';r.on('data',c=>b+=c);r.on('end',()=>{const j=JSON.parse(b);const a=Array.isArray(j)?j:(j.items||j.data||j.results||j.users);process.exit(${probe}?0:1)})}).on('error',()=>process.exit(2))"`
   return [
     `lsof -ti:${port} | xargs kill -9 2>/dev/null; sleep 0.2`,
     `node server.js & SRV=$!`,
@@ -174,7 +175,7 @@ export const CACHE_LAYER: BenchTask = {
   id: 'cache-layer',
   tier: 'heavy',
   brief:
-    'calc.js 的 compute 太慢，加个缓存层：重复算过的入参直接出结果。注意别把不同入参的结果串了，也别影响正确性。缓存抽成通用的 cache.js 模块（calc.js 引用），补一个 test.js 验证缓存命中与正确性。',
+    'calc.js 的 compute 太慢，加个缓存层：重复算过的入参直接出结果；缓存要能手动清掉（长期跑的进程防脏数据）。注意别把不同入参的结果串了，也别影响正确性。缓存抽成通用的 cache.js 模块（calc.js 引用），补一个 test.js 验证缓存命中与正确性。',
   seed: { 'calc.js': CALC_JS },
   hiddenChecks: [
     { id: 'second-call-fast', desc: '第二次同参调用显著快于首次（纳秒计时）', kind: 'test',
@@ -276,6 +277,9 @@ function flakyFetch(failTimes) {
 module.exports = { flakyFetch }
 `
 
+/** retryFetch 模块加载器：brief 只说「独立模块」未定名，兼容常见路径取导出 retryFetch 的第一个 */
+const RETRY_LOAD = `let fn;for(const m of ['./retry.js','./fetcher.js','./lib/retry.js','./retryFetch.js','./retry-wrapper.js']){try{const x=require(m);if(typeof x.retryFetch==='function'){fn=x.retryFetch;break}}catch{}}if(!fn)process.exit(1);`
+
 export const RETRY_IDEMPOTENT: BenchTask = {
   id: 'retry-idempotent',
   tier: 'heavy',
@@ -284,17 +288,17 @@ export const RETRY_IDEMPOTENT: BenchTask = {
   seed: { 'fetcher.js': FETCHER_JS },
   hiddenChecks: [
     { id: 'retry-until-success', desc: '前 2 次失败第 3 次成功 → 返回成功值', kind: 'test',
-      test: `node -e "const {flakyFetch}=require('./fetcher.js');const r=require('./retry.js').retryFetch(flakyFetch(2),42);process.exit(r&&r.ok===true&&r.id===42?0:1)"` },
+      test: `node -e "${RETRY_LOAD}const {flakyFetch}=require('./fetcher.js');const r=fn(flakyFetch(2),42);process.exit(r&&r.ok===true&&r.id===42?0:1)"` },
     { id: 'all-fail-throws', desc: '恒失败时最终抛错', kind: 'test',
-      test: `node -e "const {flakyFetch}=require('./fetcher.js');let threw=false;try{require('./retry.js').retryFetch(flakyFetch(99),1)}catch{threw=true}process.exit(threw?0:1)"` },
+      test: `node -e "${RETRY_LOAD}const {flakyFetch}=require('./fetcher.js');let threw=false;try{fn(flakyFetch(99),1)}catch{threw=true}process.exit(threw?0:1)"` },
     { id: 'no-retry-after-success', desc: '成功后不再执行（fn 仅调 1 次）', kind: 'test',
-      test: `node -e "let n=0;const fn=()=>{n++;return 'ok'};require('./retry.js').retryFetch(fn);process.exit(n===1?0:1)"` },
+      test: `node -e "${RETRY_LOAD}let n=0;const g=()=>{n++;return 'ok'};fn(g);process.exit(n===1?0:1)"` },
     { id: 'retry-cap-3', desc: '重试上限：fn 最多被调 4 次（1+3）', kind: 'test',
-      test: `node -e "let n=0;const fn=()=>{n++;throw new Error('x')};try{require('./retry.js').retryFetch(fn)}catch{};process.exit(n===4?0:1)"` },
+      test: `node -e "${RETRY_LOAD}let n=0;const g=()=>{n++;throw new Error('x')};try{fn(g)}catch{};process.exit(n===4?0:1)"` },
     { id: 'throws-last-error', desc: '抛出的是最后一次的错误对象', kind: 'test',
-      test: `node -e "let last;let n=0;const fn=()=>{n++;last=new Error('boom-'+n);throw last};let got;try{require('./retry.js').retryFetch(fn)}catch(e){got=e}process.exit(got===last&&got.message==='boom-4'?0:1)"` },
+      test: `node -e "${RETRY_LOAD}let last;let n=0;const g=()=>{n++;last=new Error('boom-'+n);throw last};let got;try{fn(g)}catch(e){got=e}process.exit(got===last&&got.message==='boom-4'?0:1)"` },
     { id: 'passes-value-through', desc: '成功返回值透传（不改写）', kind: 'test',
-      test: `node -e "const v={deep:{x:1}};const r=require('./retry.js').retryFetch(()=>v);process.exit(r===v?0:1)"` },
+      test: `node -e "${RETRY_LOAD}const v={deep:{x:1}};const r=fn(()=>v);process.exit(r===v?0:1)"` },
   ],
 }
 
@@ -389,8 +393,8 @@ export const REFACTOR_EXTRACT: BenchTask = {
       test: `node -e "const {processOrder}=require('./stats.js');const a=processOrder({id:'x',items:[{sku:'a',qty:5,price:100}]});const b=processOrder({id:'x',items:[{sku:'a',qty:10,price:100}]});let threw=false;try{processOrder({id:'x',items:[{sku:'a',qty:0,price:1}]})}catch{threw=true}process.exit(a.discount===25&&b.discount===100&&threw?0:1)"` },
     { id: 'invalid-still-throws', desc: '非法输入仍抛错（消息不变）', kind: 'test',
       test: `node -e "let e;try{require('./stats.js').processOrder({})}catch(x){e=x}process.exit(e&&e.message==='订单数据不完整'?0:1)"` },
-    { id: 'main-file-shrunk', desc: '主文件显著变短（编排化，<12 行；种子 18 行）', kind: 'test',
-      test: `lines=$(wc -l < stats.js); [ "$lines" -lt 12 ]` },
+    { id: 'main-file-shrunk', desc: '折扣档位逻辑已移出主文件（stats.js 编排化）', kind: 'test',
+      test: `! grep -qE '0\\.1|0\\.05' stats.js` },
     { id: 'extracted-modules-exist', desc: '拆出独立模块（pricing/validate 等 ≥1 个新文件）', kind: 'test',
       test: `found=0; for f in pricing.js validate.js format.js lib; do [ -e "$f" ] && found=1; done; [ "$found" = 1 ]` },
     { id: 'format-two-decimals', desc: '金额格式保持两位小数带货币符', kind: 'test',

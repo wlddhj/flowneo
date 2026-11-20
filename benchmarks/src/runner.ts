@@ -173,7 +173,7 @@ export async function runPool<T>(items: T[], workers: number, fn: (item: T) => P
   await Promise.allSettled(inflight)
 }
 
-/** 离线重算：读 meta + stream 文件 + workspace，重跑指标与评分（不调 API） */
+/** 离线重算：读 meta + stream 文件 + workspace，重跑指标与评分（不调 API）。resumeCount 由流段数恢复（首段之外每段一次续轮） */
 export function rescoreCell(task: BenchTask, cellDir: string): CellResult {
   const meta = JSON.parse(readFileSync(join(cellDir, 'meta.json'), 'utf8'))
   const parts: StreamStats[] = []
@@ -185,5 +185,5 @@ export function rescoreCell(task: BenchTask, cellDir: string): CellResult {
       break
     }
   }
-  return finish(task, { id: meta.arm }, meta.run, cellDir, join(cellDir, 'workspace'), meta.seedSha, parts, 0, 'ok')
+  return finish(task, { id: meta.arm }, meta.run, cellDir, join(cellDir, 'workspace'), meta.seedSha, parts, Math.max(0, parts.length - 1), 'ok')
 }
