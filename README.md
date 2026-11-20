@@ -2,7 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/flowneo.svg)](https://www.npmjs.com/package/flowneo) [![GitHub](https://img.shields.io/badge/GitHub-wlddhj/flowneo-blue?logo=github)](https://github.com/wlddhj/flowneo)
 
-轻量跨平台 AI 编码工程工作流插件，原生兼容 **Claude Code**、**OpenAI Codex** 与 **ZCode**。Superpowers 的精简平替：常驻 Router 持续注入保流程纪律，懒加载与轻重分流压低 Token 消耗，设计档位（全量/精简）按任务类型自适应，四阶结构化设计让方案落地更专业。
+轻量跨平台 AI 编码工程工作流插件，原生兼容 **Claude Code**、**OpenAI Codex** 与 **ZCode**。Superpowers 的精简平替。**定位是交付的可审计性**：常驻 Router 注入流程纪律，重任务走五阶段（需求 → 设计确认门禁 → 编码 → 审查 → 归档），每步落痕为 `.flow-neo/` 工件全程可追溯；轻任务零文档零开销。基准实测如实呈现：流程遵循度满配（重任务工件 30/30），交付质量与裸跑持平——FlowNeo 提供的是治理与可追溯，不是代码质量的魔法（数据见[基准报告](#基准数据可复现)）。
 
 ## 安装
 
@@ -64,6 +64,19 @@ ZCode（走 Claude Code 兼容层，v0.5.0+ 实测可用）：
 - **全量档**：四阶完整（需求规格 / 功能设计 / 架构数据设计 / 任务拆解）
 - **精简档**：第三阶降为「技术要点」（关键决策 / 风险与应对 / 复杂度要点），其余三阶不变
 
+## 基准数据（可复现）
+
+基于真实 headless 会话的三臂对照基准（13 任务卡 × 隐藏检查点 × good/bad 参照评分），方法论与逐格数据全部公开：
+
+| 结论 | 数据 |
+|---|---|
+| 流程遵循度（A/B 验证） | 信号导向分流后，重任务五阶段工件 **30/30 满配**（改造前均值 3.60/6、0 值格 12） |
+| 交付质量 | 三臂持平（baseline / flowneo / 一句话排伪，修订口径 93.5% 逐字相同）——**不宣称质量提升** |
+| 档位无关 | GLM-5.3 与 5.3-Flash 裸跑仅差 1pp；「弱模型护栏」假设经检验证伪 |
+| 代价 | 重任务成本 +43%（$1.26→$1.80/格）——用确定性成本换全程可追溯 |
+
+报告：[首轮 117 格](./benchmarks/results/2026-11-20-bench.md) · [分流 A/B](./benchmarks/results/2026-11-20-router-ab.md) · [护栏证伪](./benchmarks/results/2026-11-20-flash-guardrail.md)；复现：`npm run bench -- --selftest|--run`（见 [benchmarks/README](./benchmarks/README.md)）。
+
 ## 与 Superpowers 的差异
 
 | 维度 | Superpowers | FlowNeo |
@@ -77,6 +90,7 @@ ZCode（走 Claude Code 兼容层，v0.5.0+ 实测可用）：
 | 可配置化 | 规则臃肿难改 | 五组配置开关（含跳阶段） |
 | 技术栈 | bash hooks + 多平台垫片 | TypeScript 零依赖单文件 |
 | 平台 | 多平台兼容冗余 | CC + Codex + ZCode 三端（ZCode 复用 CC 兼容层，零结构冗余） |
+| 基准验证 | 无公开数据 | 三份可复现基准报告（117 格首测 / 分流 A/B / 护栏证伪） |
 
 ## 配置
 
