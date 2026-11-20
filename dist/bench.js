@@ -145,7 +145,7 @@ const server = http.createServer((req, res) => {
 server.listen(3000)
 `;
 function probeServer(port, query, probe) {
-  const detect = `node -e "const h=require('http');h.get('http://127.0.0.1:${port}/users${query}',(r)=>{let b='';r.on('data',c=>b+=c);r.on('end',()=>{const j=JSON.parse(b);const a=Array.isArray(j)?j:j.items;process.exit(${probe}?0:1)})}).on('error',()=>process.exit(2))"`;
+  const detect = `node -e "const h=require('http');h.get('http://127.0.0.1:${port}/users${query}',(r)=>{let b='';r.on('data',c=>b+=c);r.on('end',()=>{const j=JSON.parse(b);const a=Array.isArray(j)?j:(j.items||j.data||j.results||j.users);process.exit(${probe}?0:1)})}).on('error',()=>process.exit(2))"`;
   return [
     `lsof -ti:${port} | xargs kill -9 2>/dev/null; sleep 0.2`,
     `node server.js & SRV=$!`,
@@ -281,7 +281,7 @@ module.exports = { compute }
 var CACHE_LAYER = {
   id: "cache-layer",
   tier: "heavy",
-  brief: "calc.js \u7684 compute \u592A\u6162\uFF0C\u52A0\u4E2A\u7F13\u5B58\u5C42\uFF1A\u91CD\u590D\u7B97\u8FC7\u7684\u5165\u53C2\u76F4\u63A5\u51FA\u7ED3\u679C\u3002\u6CE8\u610F\u522B\u628A\u4E0D\u540C\u5165\u53C2\u7684\u7ED3\u679C\u4E32\u4E86\uFF0C\u4E5F\u522B\u5F71\u54CD\u6B63\u786E\u6027\u3002\u7F13\u5B58\u62BD\u6210\u901A\u7528\u7684 cache.js \u6A21\u5757\uFF08calc.js \u5F15\u7528\uFF09\uFF0C\u8865\u4E00\u4E2A test.js \u9A8C\u8BC1\u7F13\u5B58\u547D\u4E2D\u4E0E\u6B63\u786E\u6027\u3002",
+  brief: "calc.js \u7684 compute \u592A\u6162\uFF0C\u52A0\u4E2A\u7F13\u5B58\u5C42\uFF1A\u91CD\u590D\u7B97\u8FC7\u7684\u5165\u53C2\u76F4\u63A5\u51FA\u7ED3\u679C\uFF1B\u7F13\u5B58\u8981\u80FD\u624B\u52A8\u6E05\u6389\uFF08\u957F\u671F\u8DD1\u7684\u8FDB\u7A0B\u9632\u810F\u6570\u636E\uFF09\u3002\u6CE8\u610F\u522B\u628A\u4E0D\u540C\u5165\u53C2\u7684\u7ED3\u679C\u4E32\u4E86\uFF0C\u4E5F\u522B\u5F71\u54CD\u6B63\u786E\u6027\u3002\u7F13\u5B58\u62BD\u6210\u901A\u7528\u7684 cache.js \u6A21\u5757\uFF08calc.js \u5F15\u7528\uFF09\uFF0C\u8865\u4E00\u4E2A test.js \u9A8C\u8BC1\u7F13\u5B58\u547D\u4E2D\u4E0E\u6B63\u786E\u6027\u3002",
   seed: { "calc.js": CALC_JS },
   hiddenChecks: [
     {
@@ -447,6 +447,7 @@ function flakyFetch(failTimes) {
 }
 module.exports = { flakyFetch }
 `;
+var RETRY_LOAD = `let fn;for(const m of ['./retry.js','./fetcher.js','./lib/retry.js','./retryFetch.js','./retry-wrapper.js']){try{const x=require(m);if(typeof x.retryFetch==='function'){fn=x.retryFetch;break}}catch{}}if(!fn)process.exit(1);`;
 var RETRY_IDEMPOTENT = {
   id: "retry-idempotent",
   tier: "heavy",
@@ -457,37 +458,37 @@ var RETRY_IDEMPOTENT = {
       id: "retry-until-success",
       desc: "\u524D 2 \u6B21\u5931\u8D25\u7B2C 3 \u6B21\u6210\u529F \u2192 \u8FD4\u56DE\u6210\u529F\u503C",
       kind: "test",
-      test: `node -e "const {flakyFetch}=require('./fetcher.js');const r=require('./retry.js').retryFetch(flakyFetch(2),42);process.exit(r&&r.ok===true&&r.id===42?0:1)"`
+      test: `node -e "${RETRY_LOAD}const {flakyFetch}=require('./fetcher.js');const r=fn(flakyFetch(2),42);process.exit(r&&r.ok===true&&r.id===42?0:1)"`
     },
     {
       id: "all-fail-throws",
       desc: "\u6052\u5931\u8D25\u65F6\u6700\u7EC8\u629B\u9519",
       kind: "test",
-      test: `node -e "const {flakyFetch}=require('./fetcher.js');let threw=false;try{require('./retry.js').retryFetch(flakyFetch(99),1)}catch{threw=true}process.exit(threw?0:1)"`
+      test: `node -e "${RETRY_LOAD}const {flakyFetch}=require('./fetcher.js');let threw=false;try{fn(flakyFetch(99),1)}catch{threw=true}process.exit(threw?0:1)"`
     },
     {
       id: "no-retry-after-success",
       desc: "\u6210\u529F\u540E\u4E0D\u518D\u6267\u884C\uFF08fn \u4EC5\u8C03 1 \u6B21\uFF09",
       kind: "test",
-      test: `node -e "let n=0;const fn=()=>{n++;return 'ok'};require('./retry.js').retryFetch(fn);process.exit(n===1?0:1)"`
+      test: `node -e "${RETRY_LOAD}let n=0;const g=()=>{n++;return 'ok'};fn(g);process.exit(n===1?0:1)"`
     },
     {
       id: "retry-cap-3",
       desc: "\u91CD\u8BD5\u4E0A\u9650\uFF1Afn \u6700\u591A\u88AB\u8C03 4 \u6B21\uFF081+3\uFF09",
       kind: "test",
-      test: `node -e "let n=0;const fn=()=>{n++;throw new Error('x')};try{require('./retry.js').retryFetch(fn)}catch{};process.exit(n===4?0:1)"`
+      test: `node -e "${RETRY_LOAD}let n=0;const g=()=>{n++;throw new Error('x')};try{fn(g)}catch{};process.exit(n===4?0:1)"`
     },
     {
       id: "throws-last-error",
       desc: "\u629B\u51FA\u7684\u662F\u6700\u540E\u4E00\u6B21\u7684\u9519\u8BEF\u5BF9\u8C61",
       kind: "test",
-      test: `node -e "let last;let n=0;const fn=()=>{n++;last=new Error('boom-'+n);throw last};let got;try{require('./retry.js').retryFetch(fn)}catch(e){got=e}process.exit(got===last&&got.message==='boom-4'?0:1)"`
+      test: `node -e "${RETRY_LOAD}let last;let n=0;const g=()=>{n++;last=new Error('boom-'+n);throw last};let got;try{fn(g)}catch(e){got=e}process.exit(got===last&&got.message==='boom-4'?0:1)"`
     },
     {
       id: "passes-value-through",
       desc: "\u6210\u529F\u8FD4\u56DE\u503C\u900F\u4F20\uFF08\u4E0D\u6539\u5199\uFF09",
       kind: "test",
-      test: `node -e "const v={deep:{x:1}};const r=require('./retry.js').retryFetch(()=>v);process.exit(r===v?0:1)"`
+      test: `node -e "${RETRY_LOAD}const v={deep:{x:1}};const r=fn(()=>v);process.exit(r===v?0:1)"`
     }
   ]
 };
@@ -636,9 +637,9 @@ var REFACTOR_EXTRACT = {
     },
     {
       id: "main-file-shrunk",
-      desc: "\u4E3B\u6587\u4EF6\u663E\u8457\u53D8\u77ED\uFF08\u7F16\u6392\u5316\uFF0C<12 \u884C\uFF1B\u79CD\u5B50 18 \u884C\uFF09",
+      desc: "\u6298\u6263\u6863\u4F4D\u903B\u8F91\u5DF2\u79FB\u51FA\u4E3B\u6587\u4EF6\uFF08stats.js \u7F16\u6392\u5316\uFF09",
       kind: "test",
-      test: `lines=$(wc -l < stats.js); [ "$lines" -lt 12 ]`
+      test: `! grep -qE '0\\.1|0\\.05' stats.js`
     },
     {
       id: "extracted-modules-exist",
@@ -1364,7 +1365,7 @@ function prepareWorkspace(task, workdir) {
   git(["-c", "user.email=bench@flowneo.local", "-c", "user.name=bench", "commit", "-q", "-m", "seed"]);
   return git(["rev-parse", "HEAD"]).trim();
 }
-function buildClaudeArgs(arm) {
+function buildClaudeArgs(arm, model) {
   const args = [
     "--output-format",
     "stream-json",
@@ -1375,6 +1376,7 @@ function buildClaudeArgs(arm) {
     "--permission-mode",
     "bypassPermissions"
   ];
+  if (model) args.push("--model", model);
   if (arm.pluginDir) args.push("--plugin-dir", arm.pluginDir);
   if (arm.appendSystem) args.push("--append-system-prompt", arm.appendSystem);
   return args;
@@ -1402,7 +1404,8 @@ function parseStream(text) {
     editCounts: /* @__PURE__ */ new Map(),
     lastAssistantText: "",
     flowneoSeen: /flow-?neo/i.test(text),
-    askUserCalled: false
+    askUserCalled: false,
+    model: null
   };
   for (const line of text.split("\n")) {
     if (!line.trim()) continue;
@@ -1414,6 +1417,7 @@ function parseStream(text) {
     }
     if (ev.type === "system" && ev.subtype === "init" && ev.session_id) {
       stats.sessionId = ev.session_id;
+      if (ev.model) stats.model = ev.model;
     } else if (ev.type === "assistant" && ev.message) {
       for (const block of ev.message.content ?? []) {
         if (block.type === "text" && block.text) stats.lastAssistantText = block.text;
@@ -1444,7 +1448,8 @@ function aggregate(parts) {
     editCounts: /* @__PURE__ */ new Map(),
     lastAssistantText: "",
     flowneoSeen: false,
-    askUserCalled: false
+    askUserCalled: false,
+    model: null
   };
   for (const p of parts) {
     total.sessionId = p.sessionId ?? total.sessionId;
@@ -1456,6 +1461,7 @@ function aggregate(parts) {
     total.lastAssistantText = p.lastAssistantText || total.lastAssistantText;
     total.flowneoSeen = total.flowneoSeen || p.flowneoSeen;
     total.askUserCalled = total.askUserCalled || p.askUserCalled;
+    total.model = p.model ?? total.model;
     for (const [file, n] of p.editCounts) {
       total.editCounts.set(file, (total.editCounts.get(file) ?? 0) + n);
     }
@@ -1510,9 +1516,9 @@ async function runCell(task, arm, runIdx, cellDir, opts) {
   mkdirSync2(cellDir, { recursive: true });
   const workdir = mkdtempSync(join4(tmpdir(), "bench-cell-"));
   const seedSha = prepareWorkspace(task, workdir);
-  writeFileSync2(join4(cellDir, "meta.json"), JSON.stringify({ task: task.id, arm: arm.id, run: runIdx, seedSha }, null, 2));
+  writeFileSync2(join4(cellDir, "meta.json"), JSON.stringify({ task: task.id, arm: arm.id, run: runIdx, seedSha, model: opts.model }, null, 2));
   const env = buildEnv();
-  const baseArgs = buildClaudeArgs(arm);
+  const baseArgs = buildClaudeArgs(arm, opts.model);
   const parts = [];
   const streams = [];
   let resumeCount = 0;
@@ -1559,6 +1565,7 @@ async function runCell(task, arm, runIdx, cellDir, opts) {
 function finish(task, arm, runIdx, cellDir, workdir, seedSha, parts, resumeCount, status, error) {
   const stats = aggregate(parts);
   const checks = status === "ok" ? runChecks(task, workdir) : [];
+  const model = stats.model ?? void 0;
   const artifacts = status === "ok" ? countArtifacts(workdir) : 0;
   let srcLoc = 0;
   let testLoc = 0;
@@ -1588,6 +1595,7 @@ function finish(task, arm, runIdx, cellDir, workdir, seedSha, parts, resumeCount
     costUsd: stats.costUsd,
     resumeCount,
     routerSeen: stats.flowneoSeen,
+    ...model ? { model } : {},
     ...error ? { error } : {}
   };
   writeFileSync2(join4(cellDir, "result.json"), JSON.stringify(result, null, 2));
@@ -1616,7 +1624,7 @@ function rescoreCell(task, cellDir) {
       break;
     }
   }
-  return finish(task, { id: meta.arm }, meta.run, cellDir, join4(cellDir, "workspace"), meta.seedSha, parts, 0, "ok");
+  return finish(task, { id: meta.arm }, meta.run, cellDir, join4(cellDir, "workspace"), meta.seedSha, parts, Math.max(0, parts.length - 1), "ok");
 }
 
 // benchmarks/src/report.ts
@@ -1764,18 +1772,6 @@ function selftest() {
   if (bad > 0) fail(`selftest \u5931\u8D25\uFF1A${bad} \u9879`);
   console.log(`selftest \u901A\u8FC7\uFF1A${TASKS.length} \u4EFB\u52A1 / ${totalChecks} \u68C0\u67E5\u70B9 / \u9694\u79BB\u65AD\u8A00\u5168\u8FC7`);
 }
-function dry(taskId, armId) {
-  const task = findTask(taskId);
-  const arm = ARMS[armId] ?? fail(`\u672A\u77E5\u81C2\uFF1A${armId}`);
-  const dir = mkdtempSync2(join6(tmpdir2(), "flowneo-dry-"));
-  const seedSha = prepareWorkspace(task, dir);
-  console.log("\u5DE5\u4F5C\u533A\uFF1A", dir);
-  console.log("seed commit\uFF1A", seedSha);
-  console.log("\u73AF\u5883\uFF1A", JSON.stringify({ CLAUDE_CODE_DISABLE_CLAUDE_MDS: "1", CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1" }));
-  console.log("\u5C06\u6267\u884C\uFF1Aclaude", JSON.stringify(["-p", ...buildClaudeArgs(arm), "<brief>"]).slice(1, -1));
-  console.log("brief\uFF1A", task.brief.slice(0, 80) + "\u2026");
-  console.log("\uFF08dry \u4E0D\u8C03 API\uFF1B\u5DE5\u4F5C\u533A\u4FDD\u7559\u4F9B\u68C0\u67E5\uFF09");
-}
 function eachCellDir(stamp, cb) {
   const root = join6(RUNS_DIR, stamp);
   if (!existsSync3(root)) fail(`\u4E0D\u5B58\u5728 ${root}`);
@@ -1798,7 +1794,20 @@ function loadResults(stamp) {
 async function main() {
   const mode = process.argv[2];
   if (mode === "--selftest") return selftest();
-  if (mode === "--dry") return dry(arg("task", ""), arg("arm", "baseline"));
+  if (mode === "--dry") {
+    const task = findTask(arg("task", ""));
+    const arm = ARMS[arg("arm", "baseline")] ?? fail(`\u672A\u77E5\u81C2\uFF1A${arg("arm", "baseline")}`);
+    const model = arg("model");
+    const dir = mkdtempSync2(join6(tmpdir2(), "flowneo-dry-"));
+    const seedSha = prepareWorkspace(task, dir);
+    console.log("\u5DE5\u4F5C\u533A\uFF1A", dir);
+    console.log("seed commit\uFF1A", seedSha);
+    if (model) console.log("--model\uFF1A", model);
+    console.log("\u5C06\u6267\u884C\uFF1Aclaude", JSON.stringify(["-p", ...buildClaudeArgs(arm, model), "<brief>"]).slice(1, -1));
+    console.log("brief\uFF1A", task.brief.slice(0, 80) + "\u2026");
+    console.log("\uFF08dry \u4E0D\u8C03 API\uFF1B\u5DE5\u4F5C\u533A\u4FDD\u7559\u4F9B\u68C0\u67E5\uFF09");
+    return;
+  }
   if (mode === "--report") {
     const stamp = arg("stamp", "");
     const out = writeReport(stamp, loadResults(stamp), join6(RUNS_DIR, stamp), RESULTS_DIR);
@@ -1821,9 +1830,10 @@ async function main() {
     const runs = Number(arg("runs", "3"));
     const workers = Number(arg("workers", "4"));
     const timeoutMs = Number(arg("timeout-min", "15")) * 6e4;
+    const model = arg("model");
     const cells = [];
     for (const taskId of taskIds) for (const armId of armIds) for (let i = 1; i <= runs; i++) cells.push({ taskId, armId, runIdx: i });
-    console.log(`\u8FD0\u884C ${cells.length} \u683C\uFF08workers=${workers}\uFF0Ctimeout=${timeoutMs / 6e4}min\uFF09\u2192 benchmarks/runs/${stamp}/`);
+    console.log(`\u8FD0\u884C ${cells.length} \u683C\uFF08workers=${workers}\uFF0Ctimeout=${timeoutMs / 6e4}min${model ? `\uFF0Cmodel=${model}` : ""}\uFF09\u2192 benchmarks/runs/${stamp}/`);
     let done = 0;
     await runPool(cells, workers, async ({ taskId, armId, runIdx }) => {
       const cellDir = join6(RUNS_DIR, stamp, taskId, `${armId}-${runIdx}`);
@@ -1831,7 +1841,7 @@ async function main() {
         done++;
         return console.log(`[\u8DF3\u8FC7\u5DF2\u5B58\u5728] ${taskId}/${armId}-${runIdx}`);
       }
-      const r = await runCell(findTask(taskId), ARMS[armId], runIdx, cellDir, { timeoutMs, maxResume: 3 });
+      const r = await runCell(findTask(taskId), ARMS[armId], runIdx, cellDir, { timeoutMs, maxResume: 3, model });
       done++;
       const rate = r.hiddenTotal ? `${r.hiddenHits}/${r.hiddenTotal}` : "-";
       console.log(`[${done}/${cells.length}] ${taskId}/${armId}-${runIdx} ${r.status} hits=${rate} turns=${r.turns} resume=${r.resumeCount}`);
