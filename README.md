@@ -41,8 +41,9 @@ ZCode（走 Claude Code 兼容层，v0.5.0+ 实测可用）：
 
 安装后任意会话中：
 
-- **轻任务**（改 Bug / 改配置 / 补注释 / 局部微调）：直接说需求，FlowNeo 走轻量流——零文件、不留任何痕迹
-- **重任务**（新功能 / 模块重构 / 数据表或接口设计）：说「新任务 <名称>」，FlowNeo 引导走五阶段
+- **轻任务**（改 Bug / 改配置 / 补注释 / 单点修复，不新增文件）：直接说需求，FlowNeo 走轻量流——零文件、不留任何痕迹
+- **重任务**（新功能 / 命令 / 接口 / 模块重构 / 明言多文件）：说「新任务 <名称>」，FlowNeo 引导走五阶段；**按需求信号判定，不预判文件数，拿不准判重**
+- 编码中对实现层的已知限度取舍，写 `flowneo-shortcut: <限制>, <何时升级>` 注释（阶段四审查收割核对）
 
 **多任务并行**：不同会话可各自推进不同任务（会话级绑定互不干扰）：
 
@@ -110,6 +111,14 @@ ZCode（走 Claude Code 兼容层，v0.5.0+ 实测可用）：
 - [测试方法](./docs/testing.md)
 - [移植到新平台 checklist](./docs/porting-to-a-new-harness.md)
 - [发布说明](./RELEASE-NOTES.md)
+
+## 工程自检（贡献者）
+
+```bash
+npx flowneo lint                        # 插件结构 / Router token ≤1500 / 双端同步 / manifest 版本与 URI 一致性
+npm run bench -- --selftest             # 基准评分器参照自检（good 必过 / bad 必抓，无 API 消耗）
+npm run bench -- --run --stamp <日期>   # 完整基准矩阵（见 benchmarks/README.md）
+```
 
 ## 许可证
 
